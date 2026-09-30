@@ -1,9 +1,10 @@
-import { ArrowRight, Star, Leaf, Truck, ShieldCheck, RotateCcw } from 'lucide-react';
+import { ArrowRight, Star, Leaf, Truck, ShieldCheck, RotateCcw, Droplets, Sun, Sparkles } from 'lucide-react';
 import heroProductImg from '../../assets/images/homebanner.avif';
 import cleanserImg from '../../assets/images/cleansers.avif';
 import serumsImg from '../../assets/images/serums&oils.avif';
 import moisturiserImg from '../../assets/images/moisturisers.avif';
 import suncareImg from '../../assets/images/suncare.avif';
+import IncredientImg from '../../assets/images/ingredient.avif';
 
 export default function Home() {
   const categories = [
@@ -224,6 +225,85 @@ export default function Home() {
             ))}
           </div>
 
+        </div>
+      </section>
+
+      <section className="w-full py-20 bg-white">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
+            
+            {/* Left Image Column */}
+            <div className="lg:col-span-6">
+              <div className="relative rounded-3xl overflow-hidden shadow-sm bg-[#F9F8F6]">
+                <img 
+                  src={IncredientImg}
+                  alt="Ingredient Spotlight Makeup Brush and Powder" 
+                  className="w-full h-[480px] object-cover"
+                />
+              </div>
+            </div>
+
+            {/* Right Details Column */}
+            <div className="lg:col-span-6 flex flex-col items-start">
+              <span className="text-[10px] font-bold tracking-widest text-[#B85D36] uppercase mb-2 block">
+                INGREDIENT SPOTLIGHT
+              </span>
+              <h2 className="font-serif text-3xl sm:text-4xl lg:text-5xl text-[#1C382D] leading-[1.15] mb-4">
+                Everything in. Nothing you don't need.
+              </h2>
+              <p className="text-sm sm:text-base text-[#2C3E35]/80 font-light mb-8 leading-relaxed">
+                Every formula lists the full percentage of each active, so you always know exactly what you're putting on your skin.
+              </p>
+
+              {/* Ingredient List Items */}
+              <div className="w-full space-y-4 mb-10">
+                
+                {/* Item 1 */}
+                <div className="flex items-start space-x-4 p-4 rounded-2xl border border-[#E5E0D8]/60 bg-[#FAFAFA]/50">
+                  <div className="w-10 h-10 rounded-full bg-[#1C382D]/5 flex items-center justify-center text-[#1C382D] shrink-0 mt-0.5">
+                    <Droplets size={18} />
+                  </div>
+                  <div>
+                    <h3 className="text-sm font-bold text-[#1C382D] mb-0.5">Hyaluronic Acid 2%</h3>
+                    <p className="text-xs text-gray-500 font-light leading-relaxed">Multi-weight molecules draw moisture into every layer of skin.</p>
+                  </div>
+                </div>
+
+                {/* Item 2 */}
+                <div className="flex items-start space-x-4 p-4 rounded-2xl border border-[#E5E0D8]/60 bg-[#FAFAFA]/50">
+                  <div className="w-10 h-10 rounded-full bg-amber-500/10 flex items-center justify-center text-[#B85D36] shrink-0 mt-0.5">
+                    <Sun size={18} />
+                  </div>
+                  <div>
+                    <h3 className="text-sm font-bold text-[#1C382D] mb-0.5">Encapsulated Vitamin C</h3>
+                    <p className="text-xs text-gray-500 font-light leading-relaxed">A stabilised 15% form that brightens without the sting.</p>
+                  </div>
+                </div>
+
+                {/* Item 3 */}
+                <div className="flex items-start space-x-4 p-4 rounded-2xl border border-[#E5E0D8]/60 bg-[#FAFAFA]/50">
+                  <div className="w-10 h-10 rounded-full bg-emerald-500/10 flex items-center justify-center text-emerald-700 shrink-0 mt-0.5">
+                    <Leaf size={18} />
+                  </div>
+                  <div>
+                    <h3 className="text-sm font-bold text-[#1C382D] mb-0.5">Centella Asiatica</h3>
+                    <p className="text-xs text-gray-500 font-light leading-relaxed">Calms redness and strengthens a compromised barrier.</p>
+                  </div>
+                </div>
+
+              </div>
+
+              {/* CTA Button */}
+              <a
+                href="#ingredients"
+                className="inline-flex items-center justify-center bg-[#1C382D] text-white px-7 py-4 rounded-full text-sm font-medium hover:bg-[#274639] transition-all shadow-sm"
+              >
+                Explore the ingredient index
+              </a>
+
+            </div>
+
+          </div>
         </div>
       </section>
 
