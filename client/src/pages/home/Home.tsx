@@ -1,4 +1,4 @@
-import { ArrowRight, Star, Leaf, Truck, ShieldCheck, RotateCcw, Droplets, Sun, Sparkles } from 'lucide-react';
+import { ArrowRight, Star, Leaf, Truck, ShieldCheck, RotateCcw, Droplets, Sun } from 'lucide-react';
 import heroProductImg from '../../assets/images/homebanner.avif';
 import cleanserImg from '../../assets/images/cleansers.avif';
 import serumsImg from '../../assets/images/serums&oils.avif';
@@ -31,6 +31,37 @@ export default function Home() {
       count: "9 products",
       image: suncareImg,
       link: "#suncare"
+    }
+  ];
+
+  const routineSteps = [
+    {
+      step: "1",
+      title: "Cleanse",
+      description: "A pH-balanced milk that lifts SPF and grime without stripping.",
+      product: "Gentle Milk Cleanser",
+      link: "#cleanse"
+    },
+    {
+      step: "2",
+      title: "Treat",
+      description: "Targeted actives for brightness, texture and even tone.",
+      product: "Vitamin C Glow Serum",
+      link: "#treat"
+    },
+    {
+      step: "3",
+      title: "Hydrate",
+      description: "Ceramides and squalane to lock the good stuff in.",
+      product: "Barrier Repair Cream",
+      link: "#hydrate"
+    },
+    {
+      step: "4",
+      title: "Protect",
+      description: "Weightless mineral SPF 50 — the non-negotiable last step.",
+      product: "Mineral Daily SPF 50",
+      link: "#protect"
     }
   ];
 
@@ -304,6 +335,67 @@ export default function Home() {
             </div>
 
           </div>
+        </div>
+      </section>
+
+      <section className="w-full py-20 bg-[#FDFBF7]">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+          
+          {/* Section Header */}
+          <span className="text-[10px] font-bold tracking-widest text-[#B85D36] uppercase mb-2 block">
+            THE FOUR-STEP METHOD
+          </span>
+          <h2 className="font-serif text-3xl sm:text-4xl lg:text-5xl text-[#1C382D] mb-3">
+            A routine that takes 90 seconds
+          </h2>
+          <p className="text-sm sm:text-base text-[#2C3E35]/80 font-light mb-12">
+            No 12-step regimens. Just four products, morning and night.
+          </p>
+
+          {/* 4 Steps Cards Grid */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 text-left mb-12">
+            {routineSteps.map((item, idx) => (
+              <div 
+                key={idx}
+                className="bg-white p-6 rounded-2xl border border-[#E5E0D8]/70 shadow-sm flex flex-col justify-between"
+              >
+                <div>
+                  {/* Step Number Circle */}
+                  <div className="w-8 h-8 rounded-full bg-[#1C382D] text-white flex items-center justify-center text-xs font-bold mb-6">
+                    {item.step}
+                  </div>
+                  
+                  <h3 className="font-serif text-2xl text-[#1C382D] mb-2 font-normal">
+                    {item.title}
+                  </h3>
+                  <p className="text-xs text-gray-600 font-light leading-relaxed mb-8">
+                    {item.description}
+                  </p>
+                </div>
+
+                {/* Product Link */}
+                <a 
+                  href={item.link}
+                  className="inline-flex items-center text-xs font-semibold text-[#1C382D] hover:text-[#B85D36] transition-colors group"
+                >
+                  <span className="mr-1.5 group-hover:translate-x-0.5 transition-transform">→</span>
+                  <span>{item.product}</span>
+                </a>
+              </div>
+            ))}
+          </div>
+
+          {/* Bundle CTA Button */}
+          <div>
+            <a
+              href="#bundle"
+              className="inline-flex items-center justify-center bg-[#1C382D] text-white px-8 py-4 rounded-full text-sm font-medium hover:bg-[#274639] transition-all shadow-sm space-x-2"
+            >
+              <span>Shop the full routine — $120</span>
+              <span className="line-through text-white/60 text-xs">$152</span>
+            </a>
+          </div>
+
         </div>
       </section>
 
