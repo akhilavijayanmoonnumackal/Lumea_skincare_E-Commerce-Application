@@ -1,17 +1,5 @@
-// function Home() {
-//     return (
-//         <div>
-//             <h1>Lumea Skin Care</h1>
-//             <p>Welcome to Lumea</p>
-//         </div>
-
-//     );
-// }
-
-// export default Home;
-
-// C:\PROJECTS_MERN\Lumea-skin care-E-commerce Website\client\src\pages\home\Home.tsx
 import { ArrowRight, Star, Leaf } from 'lucide-react';
+import heroProductImg from '../../assets/images/homebanner.avif';
 
 export default function Home() {
   return (
@@ -80,52 +68,18 @@ export default function Home() {
             </div>
           </div>
 
-          {/* Right Image Showcase Column */}
+          {/* Right Image Showcase Column using your actual .avif image */}
           <div className="lg:col-span-6 relative flex justify-center lg:justify-end">
             
-            {/* Background Arched Shape container */}
-            <div className="relative w-full max-w-lg h-[460px] sm:h-[520px] bg-[#DCE6EE] rounded-t-[280px] rounded-b-[30px] overflow-visible flex items-end justify-center pb-8 shadow-inner">
+            {/* Container holding the image and floating badges */}
+            <div className="relative w-full max-w-lg">
               
-              {/* Product bottles composition (using placeholder/stylized mock arrangement) */}
-              <div className="relative w-full h-full flex items-end justify-center px-4">
-                
-                {/* Background left small tube */}
-                <div className="absolute left-6 bottom-16 w-12 h-36 bg-gradient-to-t from-orange-400 to-amber-200 rounded-lg shadow-md transform -rotate-6"></div>
-                
-                {/* Center tall pump bottle */}
-                <div className="z-20 w-24 h-64 bg-white/90 backdrop-blur-sm rounded-2xl shadow-xl flex flex-col items-center justify-between p-3 mx-2 mb-2 border border-white">
-                  <div className="w-4 h-10 bg-amber-100 rounded-full mt-1"></div>
-                  <div className="text-center">
-                    <span className="font-serif text-xs font-bold block text-[#1C382D]">Luméa</span>
-                    <span className="text-[10px] text-gray-500 block leading-tight mt-1">Barrier Repair Cleanser</span>
-                  </div>
-                  <div className="w-10 h-2 bg-gray-200 rounded-full mb-1"></div>
-                </div>
-
-                {/* Yellow bottle */}
-                <div className="z-10 w-16 h-48 bg-yellow-300 rounded-xl shadow-lg flex flex-col items-center justify-between p-2 mx-1 mb-6">
-                  <div className="w-3 h-6 bg-white rounded-full mt-1"></div>
-                  <div className="text-center">
-                    <span className="text-[9px] font-bold block text-[#1C382D]">Vitamin C</span>
-                  </div>
-                  <div className="w-6 h-1.5 bg-yellow-500 rounded-full mb-1"></div>
-                </div>
-
-                {/* Small orange tube */}
-                <div className="z-20 w-12 h-32 bg-orange-400 rounded-xl shadow-md flex flex-col items-center justify-between p-2 mx-1 mb-8">
-                  <div className="w-2 h-4 bg-white rounded-full"></div>
-                  <span className="text-[8px] text-white font-bold">SPF</span>
-                </div>
-
-                {/* Right tall pink bottle */}
-                <div className="z-10 w-20 h-56 bg-rose-200/90 rounded-2xl shadow-lg flex flex-col items-center justify-between p-3 mx-1 mb-4">
-                  <div className="w-4 h-8 bg-white/60 rounded-full mt-1"></div>
-                  <div className="text-center">
-                    <span className="text-[9px] font-bold block text-[#1C382D]">Glow</span>
-                  </div>
-                  <div className="w-8 h-2 bg-rose-300 rounded-full mb-1"></div>
-                </div>
-              </div>
+              {/* Main Product Image (.avif) */}
+              <img 
+                src={heroProductImg}
+                alt="Luméa Skincare Bestsellers"
+                className="w-full h-auto object-cover rounded-t-[280px] rounded-b-[30px] shadow-sm"
+              />
 
               {/* Floating Badge 1: Clean at Luméa */}
               <div className="absolute top-8 left-4 sm:-left-6 bg-white/95 backdrop-blur-md px-4 py-3 rounded-2xl shadow-xl flex items-center space-x-3 border border-gray-100 animate-bounce-slow">
