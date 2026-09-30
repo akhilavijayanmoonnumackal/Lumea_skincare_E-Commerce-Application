@@ -1,7 +1,38 @@
-import { ArrowRight, Star, Leaf } from 'lucide-react';
+import { ArrowRight, Star, Leaf, Truck, ShieldCheck, RotateCcw } from 'lucide-react';
 import heroProductImg from '../../assets/images/homebanner.avif';
+import cleanserImg from '../../assets/images/cleansers.avif';
+import serumsImg from '../../assets/images/serums&oils.avif';
+import moisturiserImg from '../../assets/images/moisturisers.avif';
+import suncareImg from '../../assets/images/suncare.avif';
 
 export default function Home() {
+  const categories = [
+    {
+      title: "Cleansers",
+      count: "18 products",
+      image: cleanserImg,
+      link: "#cleansers"
+    },
+    {
+      title: "Serums & Oils",
+      count: "24 products",
+      image: serumsImg,
+      link: "#serums"
+    },
+    {
+      title: "Moisturisers",
+      count: "16 products",
+      image: moisturiserImg,
+      link: "#moisturisers"
+    },
+    {
+      title: "Sun Care",
+      count: "9 products",
+      image: suncareImg,
+      link: "#suncare"
+    }
+  ];
+
   return (
     <div className="w-full overflow-hidden">
       {/* Breadcrumb info */}
@@ -108,6 +139,97 @@ export default function Home() {
 
         </div>
       </section>
+
+      <section className="w-full py-12 bg-[#FDFBF7]">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          
+          {/* Top Trust Feature Bar */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 py-6 mb-16 border-y border-[#E5E0D8] text-xs text-[#1C382D]">
+            <div className="flex items-center space-x-3">
+              <Truck size={20} className="text-[#B85D36] shrink-0" />
+              <div>
+                <span className="font-bold">Free delivery</span>
+                <span className="text-gray-500 ml-1.5">On all orders over $50</span>
+              </div>
+            </div>
+            <div className="flex items-center space-x-3 md:justify-center">
+              <ShieldCheck size={20} className="text-[#B85D36] shrink-0" />
+              <div>
+                <span className="font-bold">Clean formulas</span>
+                <span className="text-gray-500 ml-1.5">No parabens or sulphates</span>
+              </div>
+            </div>
+            <div className="flex items-center space-x-3 md:justify-end">
+              <RotateCcw size={20} className="text-[#B85D36] shrink-0" />
+              <div>
+                <span className="font-bold">30-day returns</span>
+                <span className="text-gray-500 ml-1.5">Love it or your money back</span>
+              </div>
+            </div>
+          </div>
+
+          {/* Section Header */}
+          <div className="flex flex-col sm:flex-row sm:items-end justify-between mb-8">
+            <div>
+              <span className="text-[10px] font-bold tracking-widest text-[#B85D36] uppercase mb-1 block">
+                SHOP BY CATEGORY
+              </span>
+              <h2 className="font-serif text-3xl sm:text-4xl text-[#1C382D]">
+                Build your ritual
+              </h2>
+            </div>
+            <a 
+              href="#all-categories" 
+              className="text-xs font-semibold text-[#1C382D] underline underline-offset-4 hover:text-[#B85D36] transition-colors mt-2 sm:mt-0"
+            >
+              View all categories
+            </a>
+          </div>
+
+          {/* Category Cards Grid */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+            {categories.map((cat, idx) => (
+              <a 
+                key={idx}
+                href={cat.link}
+                className="group relative h-[420px] rounded-2xl overflow-hidden shadow-sm flex flex-col justify-end p-6 transition-all duration-300 hover:shadow-md"
+              >
+                {/* Background Image */}
+                <img 
+                  src={cat.image} 
+                  alt={cat.title} 
+                  className="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                />
+
+                {/* Dark Gradient Overlay for Readability */}
+                <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/10 to-transparent"></div>
+
+                {/* Card Content */}
+                <div className="relative z-10 flex items-end justify-between">
+                  <div>
+                    <h3 className="font-serif text-xl text-white font-normal mb-0.5">
+                      {cat.title}
+                    </h3>
+                    <p className="text-xs text-white/80 font-light">
+                      {cat.count}
+                    </p>
+                  </div>
+
+                  {/* Arrow Button Circle */}
+                  <div className="w-9 h-9 rounded-full bg-white/20 backdrop-blur-md flex items-center justify-center text-white group-hover:bg-white group-hover:text-[#1C382D] transition-colors">
+                    <ArrowRight size={16} />
+                  </div>
+                </div>
+              </a>
+            ))}
+          </div>
+
+        </div>
+      </section>
+
+    
     </div>
+
+    
   );
 }
