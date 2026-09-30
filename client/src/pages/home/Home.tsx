@@ -1,4 +1,4 @@
-import { ArrowRight, Star, Leaf, Truck, ShieldCheck, RotateCcw, Droplets, Sun } from 'lucide-react';
+import { ArrowRight, Star, Leaf, Truck, ShieldCheck, RotateCcw, Droplets, Sun, ArrowLeft } from 'lucide-react';
 import heroProductImg from '../../assets/images/homebanner.avif';
 import cleanserImg from '../../assets/images/cleansers.avif';
 import serumsImg from '../../assets/images/serums&oils.avif';
@@ -62,6 +62,27 @@ export default function Home() {
       description: "Weightless mineral SPF 50 — the non-negotiable last step.",
       product: "Mineral Daily SPF 50",
       link: "#protect"
+    }
+  ];
+
+  const testimonials = [
+    {
+      quote: "My hyperpigmentation faded in six weeks. I've repurchased the serum three times and converted two friends.",
+      name: "Priya N.",
+      role: "Verified buyer · Combination skin",
+      avatar: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80&w=200"
+    },
+    {
+      quote: "Finally an SPF that doesn't pill under makeup or leave a white cast on deeper skin tones.",
+      name: "Amara O.",
+      role: "Verified buyer · Oily skin",
+      avatar: "https://images.unsplash.com/photo-1517841905240-472988babdf9?auto=format&fit=crop&q=80&w=200"
+    },
+    {
+      quote: "The barrier cream calmed my retinol flare-ups overnight. Texture is luxurious but never greasy.",
+      name: "Sofia M.",
+      role: "Verified buyer · Sensitive skin",
+      avatar: "https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?auto=format&fit=crop&q=80&w=200"
     }
   ];
 
@@ -394,6 +415,71 @@ export default function Home() {
               <span>Shop the full routine — $120</span>
               <span className="line-through text-white/60 text-xs">$152</span>
             </a>
+          </div>
+
+        </div>
+      </section>
+
+      <section className="w-full py-20 bg-white">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          
+          {/* Section Header with Navigation Arrows */}
+          <div className="flex flex-col sm:flex-row sm:items-end justify-between mb-12">
+            <div>
+              <span className="text-[10px] font-bold tracking-widest text-[#B85D36] uppercase mb-2 block">
+                REAL RESULTS
+              </span>
+              <h2 className="font-serif text-3xl sm:text-4xl lg:text-5xl text-[#1C382D]">
+                What your skin twin says
+              </h2>
+            </div>
+            
+            {/* Arrow Buttons */}
+            <div className="flex items-center space-x-3 mt-4 sm:mt-0">
+              <button className="w-11 h-11 rounded-full bg-[#F5F2EB] hover:bg-[#E5E0D8] flex items-center justify-center text-[#1C382D] transition-colors">
+                <ArrowLeft size={18} />
+              </button>
+              <button className="w-11 h-11 rounded-full bg-[#F5F2EB] hover:bg-[#E5E0D8] flex items-center justify-center text-[#1C382D] transition-colors">
+                <ArrowRight size={18} />
+              </button>
+            </div>
+          </div>
+
+          {/* Testimonials Grid Cards */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            {testimonials.map((review, idx) => (
+              <div 
+                key={idx}
+                className="bg-white p-8 rounded-3xl border border-[#E5E0D8]/70 shadow-sm flex flex-col justify-between"
+              >
+                <div>
+                  {/* 5 Stars */}
+                  <div className="flex items-center space-x-1 text-[#B85D36] mb-6">
+                    {[...Array(5)].map((_, i) => (
+                      <Star key={i} size={14} fill="currentColor" />
+                    ))}
+                  </div>
+
+                  {/* Quote */}
+                  <p className="text-sm sm:text-base text-[#1C382D] font-light leading-relaxed mb-8">
+                    "{review.quote}"
+                  </p>
+                </div>
+
+                {/* User Info */}
+                <div className="flex items-center space-x-3 pt-4 border-t border-gray-100">
+                  <img 
+                    src={review.avatar} 
+                    alt={review.name} 
+                    className="w-10 h-10 rounded-full object-cover"
+                  />
+                  <div>
+                    <h3 className="text-xs font-bold text-[#1C382D]">{review.name}</h3>
+                    <p className="text-[11px] text-gray-500 font-light">{review.role}</p>
+                  </div>
+                </div>
+              </div>
+            ))}
           </div>
 
         </div>
