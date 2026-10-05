@@ -568,6 +568,52 @@ export default function Home() {
         </div>
       </section>
 
+      <section className="w-full py-20 bg-[#1C382D] text-white">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
+            
+            {/* Left Content */}
+            <div className="lg:col-span-6 flex flex-col items-start">
+              <h2 className="font-serif text-3xl sm:text-4xl lg:text-5xl text-white leading-[1.15] mb-4">
+                Get 10% off your first ritual.
+              </h2>
+              <p className="text-sm sm:text-base text-white/70 font-light leading-relaxed max-w-md">
+                Join 80,000 people getting dermatologist-written skin notes every other Thursday. No spam, ever.
+              </p>
+            </div>
+
+            {/* Right Form */}
+            <div className="lg:col-span-6 flex flex-col items-start lg:items-end">
+              <div className="w-full max-w-lg">
+                <form 
+                  onSubmit={(e) => e.preventDefault()}
+                  className="flex flex-col sm:flex-row items-center p-2 rounded-full border border-white/20 bg-[#1C382D] shadow-inner mb-3"
+                >
+                  <input 
+                    type="email" 
+                    placeholder="you@email.com" 
+                    className="w-full sm:w-auto flex-1 bg-transparent px-6 py-3 text-sm text-white placeholder-white/40 focus:outline-none"
+                    required
+                  />
+                  <button 
+                    type="submit"
+                    className="w-full sm:w-auto inline-flex items-center justify-center space-x-2 bg-[#B85D36] hover:bg-[#a5522f] text-white px-7 py-3.5 rounded-full text-sm font-medium transition-colors shadow-sm shrink-0"
+                  >
+                    <span>Subscribe</span>
+                    <ArrowRight size={16} />
+                  </button>
+                </form>
+
+                <p className="text-xs text-white/50 font-light pl-4">
+                  By subscribing you agree to our Privacy Policy. Unsubscribe anytime.
+                </p>
+              </div>
+            </div>
+
+          </div>
+        </div>
+      </section>
+
     
     </div>
 
