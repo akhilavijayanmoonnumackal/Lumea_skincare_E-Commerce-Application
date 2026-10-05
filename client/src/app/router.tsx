@@ -11,6 +11,7 @@ import AccountDashboard from '../pages/profile/AccountDashboard';
 import Wishlist from '../pages/wishlist/Wishlist';
 import OrderHistory from '../pages/orders/OrderHistory';
 import SkinQuiz from '../pages/quiz/SkinQuiz';
+import EditProfile from '../pages/profile/EditProfile';
 
 export const router = createBrowserRouter([
     {
@@ -46,6 +47,10 @@ export const router = createBrowserRouter([
                 element: <AccountDashboard />,
             },
             {
+                path: "account/profile",
+                element: <EditProfile />,
+            },
+            {
                 path: "wishlist",
                 element: <Wishlist />,
             },
@@ -53,6 +58,7 @@ export const router = createBrowserRouter([
                 path: "quiz",
                 element: <SkinQuiz />,
             },
+            
         ],
     },
     {
