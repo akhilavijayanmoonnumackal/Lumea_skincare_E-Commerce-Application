@@ -1,29 +1,6 @@
-// import { Outlet } from "react-router-dom";
-
-// function MainLayout() {
-//     return (
-//         <>
-//             <header>
-//                 Lumea Header
-//             </header>
-
-//             <main>
-//                 <Outlet />
-//             </main>
-
-//             <footer>
-//                 Lumea Footer
-//             </footer>
-//         </>
-//     );
-// }
-
-// export default MainLayout;
-
-// C:\PROJECTS_MERN\Lumea-skin care-E-commerce Website\client\src\layouts\MainLayout.tsx
 import { useState } from 'react';
 import { Outlet, Link } from 'react-router-dom';
-import { Search, User, Heart, ShoppingBag, Menu, X, Leaf, Sparkles } from 'lucide-react';
+import { Search, User, Heart, ShoppingBag, Menu, X, Leaf, Star, Mail, ArrowRight } from 'lucide-react';
 
 function MainLayout() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -109,17 +86,126 @@ function MainLayout() {
       </main>
 
       {/* Footer Placeholder */}
-      <footer className="bg-[#1C382D] text-[#E5E0D8] py-12 px-4 sm:px-6 lg:px-8 mt-auto">
-        <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between text-sm">
-          <div className="flex items-center space-x-2 mb-4 sm:mb-0">
-            <span className="font-serif text-xl text-white">Luméa</span>
-            <span className="text-xs opacity-75">© {new Date().getFullYear()} All rights reserved.</span>
+      <footer className="w-full bg-[#16241E] text-white pt-16 pb-8 border-t border-[#274639]">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          
+          {/* Top Footer Columns */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-12 gap-10 pb-16 border-b border-white/10">
+            
+            {/* Col 1: Brand & Info */}
+            <div className="lg:col-span-4 flex flex-col items-start">
+              <div className="mb-4">
+                <span className="font-serif text-2xl tracking-wide text-white">Luméa</span>
+                <span className="block text-[9px] uppercase tracking-[0.25em] text-white/70 font-sans mt-0.5">Skincare</span>
+              </div>
+              <p className="text-xs text-white/70 font-light leading-relaxed max-w-xs mb-8">
+                Clean, clinically-backed skincare formulated in small batches with biodegradable packaging.
+              </p>
+
+              {/* Social / Circular Icons */}
+              <div className="flex items-center space-x-3">
+                <a href="#mail" className="w-10 h-10 rounded-full border border-white/20 flex items-center justify-center text-white/80 hover:text-white hover:border-white transition-colors">
+                  <Mail size={16} />
+                </a>
+                <a href="#heart" className="w-10 h-10 rounded-full border border-white/20 flex items-center justify-center text-white/80 hover:text-white hover:border-white transition-colors">
+                  <Heart size={16} />
+                </a>
+                <a href="#leaf" className="w-10 h-10 rounded-full border border-white/20 flex items-center justify-center text-white/80 hover:text-white hover:border-white transition-colors">
+                  <Leaf size={16} />
+                </a>
+                <a href="#star" className="w-10 h-10 rounded-full border border-white/20 flex items-center justify-center text-white/80 hover:text-white hover:border-white transition-colors">
+                  <Star size={16} />
+                </a>
+              </div>
+            </div>
+
+            {/* Col 2: Shop Links */}
+            <div className="lg:col-span-2">
+              <h3 className="text-xs font-bold uppercase tracking-widest text-white mb-4">Shop</h3>
+              <ul className="space-y-2.5 text-xs font-light text-white/70">
+                <li><Link to="/#cleansers" className="hover:text-white transition-colors">Cleansers</Link></li>
+                <li><Link to="/#serums" className="hover:text-white transition-colors">Serums</Link></li>
+                <li><Link to="/#moisturisers" className="hover:text-white transition-colors">Moisturisers</Link></li>
+                <li><Link to="/#suncare" className="hover:text-white transition-colors">Sun Care</Link></li>
+                <li><Link to="/#bundles" className="hover:text-white transition-colors">Bundles</Link></li>
+                <li><Link to="/#gift-cards" className="hover:text-white transition-colors">Gift Cards</Link></li>
+              </ul>
+            </div>
+
+            {/* Col 3: Help Links */}
+            <div className="lg:col-span-2">
+              <h3 className="text-xs font-bold uppercase tracking-widest text-white mb-4">Help</h3>
+              <ul className="space-y-2.5 text-xs font-light text-white/70">
+                <li><Link to="/track-order" className="hover:text-white transition-colors">Track Order</Link></li>
+                <li><Link to="/shipping" className="hover:text-white transition-colors">Shipping & Returns</Link></li>
+                <li><Link to="/faq" className="hover:text-white transition-colors">FAQ</Link></li>
+                <li><Link to="/contact" className="hover:text-white transition-colors">Contact Us</Link></li>
+                <li><Link to="/quiz" className="hover:text-white transition-colors">Skin Quiz</Link></li>
+              </ul>
+            </div>
+
+            {/* Col 4: About Links */}
+            <div className="lg:col-span-2">
+              <h3 className="text-xs font-bold uppercase tracking-widest text-white mb-4">About</h3>
+              <ul className="space-y-2.5 text-xs font-light text-white/70">
+                <li><Link to="/story" className="hover:text-white transition-colors">Our Story</Link></li>
+                <li><Link to="/ingredients" className="hover:text-white transition-colors">Ingredients Index</Link></li>
+                <li><Link to="/sustainability" className="hover:text-white transition-colors">Sustainability</Link></li>
+                <li><Link to="/journal" className="hover:text-white transition-colors">Journal</Link></li>
+                <li><Link to="/careers" className="hover:text-white transition-colors">Careers</Link></li>
+              </ul>
+            </div>
+
+            {/* Col 5: Stay in the Glow Newsletter */}
+            <div className="lg:col-span-2">
+              <h3 className="text-xs font-bold uppercase tracking-widest text-white mb-2">Stay in the glow</h3>
+              <p className="text-xs text-white/70 font-light mb-4">Skin tips + 10% off your first order.</p>
+              
+              <form onSubmit={(e) => e.preventDefault()} className="relative flex items-center">
+                <input 
+                  type="email" 
+                  placeholder="Email address" 
+                  className="w-full bg-transparent border border-white/20 rounded-full px-4 py-2.5 text-xs text-white placeholder-white/40 focus:outline-none focus:border-white/60 pr-10"
+                />
+                <button 
+                  type="submit" 
+                  className="absolute right-1.5 w-7 h-7 rounded-full bg-[#B85D36] hover:bg-[#a5522f] flex items-center justify-center text-white transition-colors"
+                >
+                  <ArrowRight size={14} />
+                </button>
+              </form>
+            </div>
+
           </div>
-          <div className="flex space-x-6 text-xs opacity-80">
-            <a href="#" className="hover:underline">Privacy Policy</a>
-            <a href="#" className="hover:underline">Terms of Service</a>
-            <a href="#" className="hover:underline">Contact Us</a>
+
+          {/* Bottom Footer Row: Copyright, Payment Badges & Legal links */}
+          <div className="pt-8 flex flex-col md:flex-row items-center justify-between text-[11px] text-white/60 space-y-4 md:space-y-0">
+            <div>
+              <p>© 2026 Luméa Skincare. All rights reserved.</p>
+            </div>
+
+            {/* Payment Method Badges */}
+            <div className="flex items-center space-x-2">
+              {['VISA', 'MC', 'AMEX', 'PayPal', 'UPI', 'Apple Pay'].map((badge, idx) => (
+                <span 
+                  key={idx} 
+                  className="border border-white/15 px-2 py-0.5 rounded text-[10px] tracking-wider uppercase font-mono text-white/70"
+                >
+                  {badge}
+                </span>
+              ))}
+            </div>
+
+            {/* Legal Links */}
+            <div className="flex items-center space-x-4">
+              <a href="#privacy" className="hover:text-white transition-colors">Privacy</a>
+              <span>·</span>
+              <a href="#terms" className="hover:text-white transition-colors">Terms</a>
+              <span>·</span>
+              <a href="#cookies" className="hover:text-white transition-colors">Cookies</a>
+            </div>
           </div>
+
         </div>
       </footer>
     </div>
