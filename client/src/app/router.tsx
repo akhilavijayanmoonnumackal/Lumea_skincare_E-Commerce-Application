@@ -10,6 +10,7 @@ import Signup from '../pages/auth/Signup';
 import AccountDashboard from '../pages/profile/AccountDashboard';
 import Wishlist from '../pages/wishlist/Wishlist';
 import OrderHistory from '../pages/orders/OrderHistory';
+import SkinQuiz from '../pages/quiz/SkinQuiz';
 
 export const router = createBrowserRouter([
     {
@@ -47,6 +48,10 @@ export const router = createBrowserRouter([
             {
                 path: "wishlist",
                 element: <Wishlist />,
+            },
+            {
+                path: "quiz",
+                element: <SkinQuiz />,
             },
         ],
     },
