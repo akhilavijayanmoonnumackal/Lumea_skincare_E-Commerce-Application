@@ -7,6 +7,7 @@ import Cart from '../pages/cart/Cart';
 import Checkout from '../pages/checkout/Checkout';
 import Login from '../pages/auth/Login';
 import Signup from '../pages/auth/Signup';
+import AccountDashboard from '../pages/profile/AccountDashboard';
 
 export const router = createBrowserRouter([
     {
@@ -32,7 +33,11 @@ export const router = createBrowserRouter([
             {
                 path: "checkout",
                 element: <Checkout />,
-            }
+            },
+            {
+                path: "account",
+                element: <AccountDashboard />,
+            },
         ],
     },
     {
