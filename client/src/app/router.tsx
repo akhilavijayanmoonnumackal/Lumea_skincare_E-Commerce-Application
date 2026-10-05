@@ -15,6 +15,8 @@ import EditProfile from '../pages/profile/EditProfile';
 import AddressBook from '../pages/profile/AddressBook';
 import GlowRewards from '../pages/rewards/GlowRewards';
 import Subscriptions from '../pages/profile/Subscriptions';
+import OrderDetail from '../pages/orders/orderDetail';
+import SkincareGuide from '../pages/support/SkincareGuide';
 
 export const router = createBrowserRouter([
     {
@@ -62,6 +64,10 @@ export const router = createBrowserRouter([
                 element: <Subscriptions />,
             },
             {
+                path: "account/orders/:id",
+                element: <OrderDetail />,
+            },
+            {
                 path: "wishlist",
                 element: <Wishlist />,
             },
@@ -73,7 +79,10 @@ export const router = createBrowserRouter([
                 path: "rewards",
                 element: <GlowRewards />,
             },
-            
+            {
+                path: "support/guide",
+                element: <SkincareGuide />
+            },
         ],
     },
     {
