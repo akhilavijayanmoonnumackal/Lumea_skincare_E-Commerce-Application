@@ -17,6 +17,7 @@ import GlowRewards from '../pages/rewards/GlowRewards';
 import Subscriptions from '../pages/profile/Subscriptions';
 import OrderDetail from '../pages/orders/orderDetail';
 import SkincareGuide from '../pages/support/SkincareGuide';
+import NotFound from '../pages/error/NotFound';
 
 export const router = createBrowserRouter([
     {
@@ -82,6 +83,10 @@ export const router = createBrowserRouter([
             {
                 path: "support/guide",
                 element: <SkincareGuide />
+            },
+            {
+                path: "*",
+                element: <NotFound />,
             },
         ],
     },
