@@ -6,6 +6,13 @@ import moisturiserImg from '../../assets/images/moisturisers.avif';
 import suncareImg from '../../assets/images/suncare.avif';
 import IncredientImg from '../../assets/images/ingredient.avif';
 
+import insta1Img from '../../assets/images/instaImg1.avif';
+import insta2Img from '../../assets/images/instaImg2.avif';
+import insta3Img from '../../assets/images/instaImg3.avif';
+import insta4Img from '../../assets/images/instaImg4.avif';
+import insta5Img from '../../assets/images/instaImg5.avif';
+import insta6Img from '../../assets/images/instaImg6.avif';
+
 export default function Home() {
   const categories = [
     {
@@ -83,6 +90,33 @@ export default function Home() {
       name: "Sofia M.",
       role: "Verified buyer · Sensitive skin",
       avatar: "https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?auto=format&fit=crop&q=80&w=200"
+    }
+  ];
+
+  const instagramPosts = [
+    {
+      image: insta1Img,
+      link: "https://instagram.com"
+    },
+    {
+      image: insta2Img,
+      link: "https://instagram.com"
+    },
+    {
+      image: insta3Img,
+      link: "https://instagram.com"
+    },
+    {
+      image: insta4Img,
+      link: "https://instagram.com"
+    },
+    {
+      image: insta5Img,
+      link: "https://instagram.com"
+    },
+    {
+      image: insta6Img,
+      link: "https://instagram.com"
     }
   ];
 
@@ -479,6 +513,55 @@ export default function Home() {
                   </div>
                 </div>
               </div>
+            ))}
+          </div>
+
+        </div>
+      </section>
+
+      <section className="w-full py-20 bg-[#FDFBF7] border-t border-[#E5E0D8]/50">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+          
+          <span className="text-[10px] font-bold tracking-widest text-[#B85D36] uppercase mb-2 block">
+            @LUMEASKINCARE
+          </span>
+          <h2 className="font-serif text-3xl sm:text-4xl lg:text-5xl text-[#1C382D] mb-12">
+            Tag us for a chance to be featured
+          </h2>
+
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4">
+            {instagramPosts.map((post, idx) => (
+              <a 
+                key={idx}
+                href={post.link}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="group relative h-64 rounded-2xl overflow-hidden shadow-sm block bg-[#E5E0D8]"
+              >
+                <img 
+                  src={post.image} 
+                  alt="Customer Instagram feature" 
+                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                />
+                <div className="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center text-white">
+                  <svg 
+                    xmlns="http://www.w3.org/2000/svg" 
+                    width="24" 
+                    height="24" 
+                    viewBox="0 0 24 24" 
+                    fill="none" 
+                    stroke="currentColor" 
+                    strokeWidth="2" 
+                    strokeLinecap="round" 
+                    strokeLinejoin="round" 
+                    className="w-6 h-6"
+                  >
+                    <rect width="20" height="20" x="2" y="2" rx="5" ry="5"/>
+                    <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/>
+                    <line x1="17.5" x2="17.51" y1="6.5" y2="6.5"/>
+                  </svg>
+                </div>
+              </a>
             ))}
           </div>
 
