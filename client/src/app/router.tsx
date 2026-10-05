@@ -12,6 +12,7 @@ import Wishlist from '../pages/wishlist/Wishlist';
 import OrderHistory from '../pages/orders/OrderHistory';
 import SkinQuiz from '../pages/quiz/SkinQuiz';
 import EditProfile from '../pages/profile/EditProfile';
+import AddressBook from '../pages/profile/AddressBook';
 
 export const router = createBrowserRouter([
     {
@@ -49,6 +50,10 @@ export const router = createBrowserRouter([
             {
                 path: "account/profile",
                 element: <EditProfile />,
+            },
+            {
+                path: "account/address",
+                element: <AddressBook />,
             },
             {
                 path: "wishlist",
