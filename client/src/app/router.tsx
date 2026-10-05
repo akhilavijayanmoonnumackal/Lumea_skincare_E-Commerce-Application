@@ -13,6 +13,8 @@ import OrderHistory from '../pages/orders/OrderHistory';
 import SkinQuiz from '../pages/quiz/SkinQuiz';
 import EditProfile from '../pages/profile/EditProfile';
 import AddressBook from '../pages/profile/AddressBook';
+import GlowRewards from '../pages/rewards/GlowRewards';
+import Subscriptions from '../pages/profile/Subscriptions';
 
 export const router = createBrowserRouter([
     {
@@ -56,12 +58,20 @@ export const router = createBrowserRouter([
                 element: <AddressBook />,
             },
             {
+                path: "account/subscriptions",
+                element: <Subscriptions />,
+            },
+            {
                 path: "wishlist",
                 element: <Wishlist />,
             },
             {
                 path: "quiz",
                 element: <SkinQuiz />,
+            },
+            {
+                path: "rewards",
+                element: <GlowRewards />,
             },
             
         ],
