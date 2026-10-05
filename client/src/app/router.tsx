@@ -8,6 +8,8 @@ import Checkout from '../pages/checkout/Checkout';
 import Login from '../pages/auth/Login';
 import Signup from '../pages/auth/Signup';
 import AccountDashboard from '../pages/profile/AccountDashboard';
+import Wishlist from '../pages/wishlist/Wishlist';
+import OrderHistory from '../pages/orders/OrderHistory';
 
 export const router = createBrowserRouter([
     {
@@ -35,8 +37,16 @@ export const router = createBrowserRouter([
                 element: <Checkout />,
             },
             {
+                path: "account/order-history",
+                element: <OrderHistory />,
+            },
+            {
                 path: "account",
                 element: <AccountDashboard />,
+            },
+            {
+                path: "wishlist",
+                element: <Wishlist />,
             },
         ],
     },
