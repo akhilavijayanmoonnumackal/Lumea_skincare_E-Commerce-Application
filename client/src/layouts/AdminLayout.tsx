@@ -121,7 +121,7 @@ export default function AdminLayout() {
       <main className="flex-1 flex flex-col min-w-0 overflow-y-auto">
         <header className="bg-white border-b border-[#E5E0D8] px-6 py-4 flex items-center justify-between gap-4">
           <div>
-            <h1 className="font-serif text-2xl text-[#1C382D]">Good morning, Akhila</h1>
+            <h1 className="font-serif text-2xl text-[#1C382D]">Good morning, Admin</h1>
             <p className="text-xs text-gray-500 font-light">Here's what's happening with your store today.</p>
           </div>
 
@@ -146,7 +146,7 @@ export default function AdminLayout() {
 
             <img 
               src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100&auto=format&fit=crop&q=80" 
-              alt="Akhila" 
+              alt="Admin" 
               className="w-10 h-10 rounded-full object-cover border border-[#E5E0D8]" 
             />
           </div>
