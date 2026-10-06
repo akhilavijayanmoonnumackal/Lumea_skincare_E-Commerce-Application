@@ -30,7 +30,7 @@ export default function AdminLayout() {
       <aside className="w-64 bg-[#142B22] text-[#E5E0D8] flex flex-col justify-between hidden md:flex flex-shrink-0">
         <div>
           <div className="p-6 border-b border-white/10">
-            <span className="font-serif text-2xl tracking-wide text-white block">Luméa</span>
+            <span className="font-serif text-2xl tracking-wide text-white block">Lum<span className='text-[#BE6E4C]'>é</span>a</span>
             <span className="text-[10px] tracking-widest uppercase text-[#8FA89B] font-medium">Admin Control Center</span>
           </div>
 

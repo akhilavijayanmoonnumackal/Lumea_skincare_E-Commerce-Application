@@ -205,7 +205,7 @@ export default function Home() {
                   <Leaf size={16} />
                 </div>
                 <div>
-                  <p className="text-xs font-bold text-[#1C382D]">Clean at Luméa</p>
+                  <p className="text-xs font-bold text-[#1C382D]">Clean at Lum<span className='text-[#BE6E4C]'>é</span>a</p>
                   <p className="text-[10px] text-gray-500">1,400+ ingredients banned</p>
                 </div>
               </div>

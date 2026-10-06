@@ -95,7 +95,7 @@ function MainLayout() {
             {/* Col 1: Brand & Info */}
             <div className="lg:col-span-4 flex flex-col items-start">
               <div className="mb-4">
-                <span className="font-serif text-2xl tracking-wide text-white">Luméa</span>
+                <span className="font-serif text-2xl tracking-wide text-white">Lum<span className='text-[#BE6E4C]'>é</span>a</span>
                 <span className="block text-[9px] uppercase tracking-[0.25em] text-white/70 font-sans mt-0.5">Skincare</span>
               </div>
               <p className="text-xs text-white/70 font-light leading-relaxed max-w-xs mb-8">
@@ -181,7 +181,7 @@ function MainLayout() {
           {/* Bottom Footer Row: Copyright, Payment Badges & Legal links */}
           <div className="pt-8 flex flex-col md:flex-row items-center justify-between text-[11px] text-white/60 space-y-4 md:space-y-0">
             <div>
-              <p>© 2026 Luméa Skincare. All rights reserved.</p>
+              <p>© 2026 Lum<span className='text-[#BE6E4C]'>é</span>a Skincare. All rights reserved.</p>
             </div>
 
             {/* Payment Method Badges */}

@@ -32,7 +32,7 @@ export default function Signup() {
             “The only routine my skin has ever stuck with.”
           </blockquote>
           <p className="text-xs sm:text-sm text-gray-300 font-light tracking-wide">
-            Priya N. · Luméa member since 2024
+            Priya N. · Lum<span className='text-[#BE6E4C]'>é</span>a member since 2024
           </p>
         </div>
       </div>
@@ -44,7 +44,7 @@ export default function Signup() {
           {/* Brand Logo Header */}
           <div className="text-center lg:text-left space-y-1">
             <h1 className="font-serif text-2xl tracking-wider text-[#1C382D]">
-              Luméa
+              Lum<span className='text-[#BE6E4C]'>é</span>a
             </h1>
             <p className="text-[10px] uppercase tracking-widest text-gray-400 font-semibold">
               Skincare
@@ -57,7 +57,7 @@ export default function Signup() {
               Create account
             </h2>
             <p className="text-xs text-gray-500 font-light">
-              Join Luméa to unlock 10% off your first order, track shipments, and earn Glow points.
+              Join Lum<span className='text-[#BE6E4C]'>é</span>a to unlock 10% off your first order, track shipments, and earn Glow points.
             </p>
           </div>
 
@@ -170,7 +170,7 @@ export default function Signup() {
                   className="w-4 h-4 mt-0.5 rounded border-gray-300 text-[#1C382D] focus:ring-[#1C382D]"
                 />
                 <span className="text-xs text-gray-600 font-light leading-relaxed">
-                  Sign up for skin tips, exclusive offers, and agree to Luméa's <a href="#" className="underline text-[#1C382D]">Terms of Service</a> & <a href="#" className="underline text-[#1C382D]">Privacy Policy</a>.
+                  Sign up for skin tips, exclusive offers, and agree to Lum<span className='text-[#BE6E4C]'>é</span>a's <a href="#" className="underline text-[#1C382D]">Terms of Service</a> & <a href="#" className="underline text-[#1C382D]">Privacy Policy</a>.
                 </span>
               </label>
             </div>

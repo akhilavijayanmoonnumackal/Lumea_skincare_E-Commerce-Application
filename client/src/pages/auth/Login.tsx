@@ -31,7 +31,7 @@ export default function Login() {
             “The only routine my skin has ever stuck with.”
           </blockquote>
           <p className="text-xs sm:text-sm text-gray-300 font-light tracking-wide">
-            Priya N. · Luméa member since 2024
+            Priya N. · Lum<span className='text-[#BE6E4C]'>é</span>a member since 2024
           </p>
         </div>
       </div>
@@ -43,7 +43,7 @@ export default function Login() {
           {/* Brand Logo Header */}
           <div className="text-center lg:text-left space-y-1">
             <h1 className="font-serif text-2xl tracking-wider text-[#1C382D]">
-              Luméa
+              Lum<span className='text-[#BE6E4C]'>é</span>a
             </h1>
             <p className="text-[10px] uppercase tracking-widest text-gray-400 font-semibold">
               Skincare
@@ -183,7 +183,7 @@ export default function Login() {
 
           {/* Footer prompt */}
           <p className="text-center text-xs text-gray-500 font-light pt-2">
-            New to Luméa? <Link to="/register" className="text-[#1C382D] font-bold underline">Create an account</Link> and get 10% off your first order.
+            New to Lum<span className='text-[#BE6E4C]'>é</span>a? <Link to="/register" className="text-[#1C382D] font-bold underline">Create an account</Link> and get 10% off your first order.
           </p>
 
         </div>
