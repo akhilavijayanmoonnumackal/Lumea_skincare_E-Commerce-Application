@@ -4,12 +4,12 @@ import { Search, Plus, Edit3, Trash2, Layers, Package } from 'lucide-react';
 
 // Import local assets from src/assets/images
 // Adjust filenames according to your actual local asset files
-import serumImg from '../../assets/images/serum.jpg';
-import moisturizerImg from '../../assets/images/moisturizer.jpg';
-import sunscreenImg from '../../assets/images/sunscreen.jpg';
-import cleanserImg from '../../assets/images/cleanser.jpg';
-import exfoliatorImg from '../../assets/images/exfoliator.jpg';
-import tonerImg from '../../assets/images/toner.jpg';
+import serumImg from '../../assets/images/serums&oils.avif';
+import moisturizerImg from '../../assets/images/moisturisers.avif';
+import sunscreenImg from '../../assets/images/suncare.avif';
+import cleanserImg from '../../assets/images/cleansers.avif';
+import exfoliatorImg from '../../assets/images/rose.avif';
+import tonerImg from '../../assets/images/barrier.avif';
 
 export default function AdminCategoriesPage() {
   const [searchQuery, setSearchQuery] = useState('');
