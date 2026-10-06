@@ -31,6 +31,7 @@ import AdminCategoriesPage from '../pages/admin/CategoriesPage';
 import AdminReviewsPage from '../pages/admin/ReviewsPage';
 import AdminInventoryPage from '../pages/admin/InventoryPage';
 import AdminNotificationsPage from '../pages/admin/NotificationsPage';
+import AdminSettingsPage from '../pages/admin/SettingsPage';
 
 
 export const router = createBrowserRouter([
@@ -157,6 +158,10 @@ export const router = createBrowserRouter([
             {
                 path: "notifications",
                 element: <AdminNotificationsPage />,
+            },
+            {
+                path: "settings",
+                element: <AdminSettingsPage />,
             },
         ]
     }
