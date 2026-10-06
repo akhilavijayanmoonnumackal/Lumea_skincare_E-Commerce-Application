@@ -32,6 +32,7 @@ import AdminReviewsPage from '../pages/admin/ReviewsPage';
 import AdminInventoryPage from '../pages/admin/InventoryPage';
 import AdminNotificationsPage from '../pages/admin/NotificationsPage';
 import AdminSettingsPage from '../pages/admin/SettingsPage';
+import AdminLoginPage from '../pages/admin/AdminLoginPage';
 
 
 export const router = createBrowserRouter([
@@ -113,6 +114,13 @@ export const router = createBrowserRouter([
         path: "/signup",
         element: <Signup />,
     },
+
+    //ADMIN LOGIN
+    {
+        path: "/admin/login",
+        element: <AdminLoginPage />,
+    },
+    
 
     // ADMIN CONTROL
     {

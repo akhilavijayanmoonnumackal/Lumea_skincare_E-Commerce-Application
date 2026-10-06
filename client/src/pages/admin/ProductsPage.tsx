@@ -1,6 +1,5 @@
-// C:\PROJECTS_MERN\Lumea-skin care-E-commerce Website\client\src\pages\admin\ProductsPage.tsx
 import { useState } from 'react';
-import { Search, Plus, Filter, Edit3, Trash2, Eye, Star, MoreHorizontal, AlertTriangle } from 'lucide-react';
+import { Search, Plus, Filter, Edit3, Trash2, Eye, Star, AlertTriangle } from 'lucide-react';
 
 export default function AdminProductsPage() {
   const [searchQuery, setSearchQuery] = useState('');

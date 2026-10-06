@@ -1,4 +1,3 @@
-// C:\PROJECTS_MERN\Lumea-skin care-E-commerce Website\client\src\pages\admin\NotificationsPage.tsx
 import { useState } from 'react';
 import { Bell, ShoppingBag, AlertTriangle, Users, Server, CheckCheck, Trash2, ExternalLink, Filter } from 'lucide-react';
 

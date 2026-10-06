@@ -1,8 +1,6 @@
-// C:\PROJECTS_MERN\Lumea-skin care-E-commerce Website\client\src\pages\admin\InventoryPage.tsx
 import { useState } from 'react';
 import { Search, PackageCheck, AlertTriangle, AlertCircle, Plus, Minus, SlidersHorizontal, RefreshCw } from 'lucide-react';
 
-// Import local assets from src/assets/images folder
 import serumImg from '../../assets/images/serums&oils.avif';
 import moisturizerImg from '../../assets/images/moisturisers.avif';
 import sunscreenImg from '../../assets/images/suncare.avif';

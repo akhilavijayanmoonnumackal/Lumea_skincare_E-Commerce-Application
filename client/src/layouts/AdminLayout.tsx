@@ -1,4 +1,3 @@
-// C:\PROJECTS_MERN\Lumea-skin care-E-commerce Website\client\src\layouts\AdminLayout.tsx
 import { useState } from 'react';
 import { 
   LayoutDashboard, Package, ShoppingBag, Users, FolderTree, Star, 

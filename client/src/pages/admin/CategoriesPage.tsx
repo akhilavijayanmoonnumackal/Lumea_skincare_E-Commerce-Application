@@ -1,9 +1,6 @@
-// C:\PROJECTS_MERN\Lumea-skin care-E-commerce Website\client\src\pages\admin\CategoriesPage.tsx
 import { useState } from 'react';
 import { Search, Plus, Edit3, Trash2, Layers, Package } from 'lucide-react';
 
-// Import local assets from src/assets/images
-// Adjust filenames according to your actual local asset files
 import serumImg from '../../assets/images/serums&oils.avif';
 import moisturizerImg from '../../assets/images/moisturisers.avif';
 import sunscreenImg from '../../assets/images/suncare.avif';

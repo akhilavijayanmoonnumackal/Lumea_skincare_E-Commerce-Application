@@ -1,4 +1,3 @@
-// C:\PROJECTS_MERN\Lumea-skin care-E-commerce Website\client\src\pages\admin\ReviewsPage.tsx
 import { useState } from 'react';
 import { Search, Star, CheckCircle, XCircle, AlertCircle, MessageSquare, ThumbsUp, Filter, Trash2 } from 'lucide-react';
 

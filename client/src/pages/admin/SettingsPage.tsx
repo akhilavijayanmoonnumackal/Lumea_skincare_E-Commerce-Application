@@ -1,4 +1,3 @@
-// C:\PROJECTS_MERN\Lumea-skin care-E-commerce Website\client\src\pages\admin\SettingsPage.tsx
 import { useState } from 'react';
 import { Store, CreditCard, Truck, Bell, Shield, Save, CheckCircle } from 'lucide-react';
 

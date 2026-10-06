@@ -1,4 +1,3 @@
-// C:\PROJECTS_MERN\Lumea-skin care-E-commerce Website\client\src\pages\admin\DashboardPage.tsx
 import { ChevronDown, ArrowUpRight, ArrowDownRight, AlertTriangle, TrendingUp, ShoppingBag, Users, RotateCcw } from 'lucide-react';
 
 export default function DashboardPage() {
