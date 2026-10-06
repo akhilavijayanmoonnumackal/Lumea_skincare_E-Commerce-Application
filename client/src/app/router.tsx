@@ -1,5 +1,7 @@
-import { createBrowserRouter } from 'react-router-dom';
+import { createBrowserRouter, Navigate } from 'react-router-dom';
 import MainLayout from '../layouts/MainLayout';
+import AdminLayout from '../layouts/AdminLayout';
+
 import Home from '../pages/home/Home';
 import ShopCategory from '../pages/shop/shopCategory';
 import ProductDetail from '../pages/shop/ProductDetail';
@@ -18,6 +20,10 @@ import Subscriptions from '../pages/profile/Subscriptions';
 import OrderDetail from '../pages/orders/orderDetail';
 import SkincareGuide from '../pages/support/SkincareGuide';
 import NotFound from '../pages/error/NotFound';
+
+//Admin Pages
+import DashboardPage from '../pages/admin/AdminDashboard';
+
 
 export const router = createBrowserRouter([
     {
@@ -97,5 +103,21 @@ export const router = createBrowserRouter([
     {
         path: "/signup",
         element: <Signup />,
+    },
+
+    // ADMIN CONTROL
+    {
+        path: "/admin",
+        element: <AdminLayout />,
+        children: [
+            {
+                index: true,
+                element: <Navigate to="dashboard" replace />
+            },
+            {
+                path: "dashboard",
+                element: <DashboardPage />,
+            },
+        ]
     }
 ]);
