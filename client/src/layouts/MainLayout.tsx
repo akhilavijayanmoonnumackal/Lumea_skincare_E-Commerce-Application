@@ -32,7 +32,7 @@ function MainLayout() {
           {/* Logo */}
           <Link to="/" className="flex flex-col items-center md:items-start">
             <span className="font-serif text-2xl sm:text-3xl tracking-tight text-[#1C382D] font-normal">
-              Luméa
+              Lum<span className='text-[#BE6E4C]'>é</span>a
             </span>
             <span className="text-[9px] tracking-[0.25em] uppercase text-[#1C382D]/70 font-semibold -mt-1">
               Skincare
