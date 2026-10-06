@@ -24,6 +24,7 @@ import NotFound from '../pages/error/NotFound';
 //Admin Pages
 import DashboardPage from '../pages/admin/AdminDashboard';
 import OrdersPage from '../pages/admin/OrdersPage';
+import AdminProductsPage from '../pages/admin/ProductsPage';
 
 
 export const router = createBrowserRouter([
@@ -122,6 +123,10 @@ export const router = createBrowserRouter([
             {
                 path: "orders",
                 element: <OrdersPage />,
+            },
+            {
+                path: "products",
+                element: <AdminProductsPage />,
             },
         ]
     }
