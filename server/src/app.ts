@@ -1,6 +1,7 @@
 import express, { Application, Request, Response, NextFunction } from 'express';
 import cors from 'cors';
-import { timeStamp } from 'node:console';
+import authRoutes from './routes/auth.routes';
+import { globalErrorHandler } from './middlewares/error.middleware';
 
 export function createApp(): Application {
     const app: Application = express();
@@ -8,17 +9,14 @@ export function createApp(): Application {
     app.use(cors());
     app.use(express.json());
 
+    //API Routes
+    app.use('/api/auth', authRoutes);
+
     app.get('/health', (_req: Request, res: Response) => {
         res.status(200).json({ status: 'OK', timeStamp: new Date(), message: 'Luméa API is running' });
     });
 
-    app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
-        const statusCode = err.statusCode || 500;
-        res.status(statusCode).json({
-            success: false,
-            message: err.message || 'Internal Server Error',
-        });
-    });
+    app.use(globalErrorHandler);
 
     return app;
 }
