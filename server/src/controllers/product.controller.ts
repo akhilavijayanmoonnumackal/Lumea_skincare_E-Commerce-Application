@@ -15,8 +15,15 @@ export class ProductController {
 
     create = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
         try {
-            const product = await this.productService.createProduct(req.body);
-            res.status(201).json({ success: true, message: 'Product craeted', data: product });
+            let imageUrl = req.body.imageUrl;
+            if(req.file) {
+                imageUrl = req.file.path;
+            }
+
+            const productData = { ...req.body, imageUrl };
+            const product = await this.productService.createProduct(productData);
+
+            res.status(201).json({ success: true, message: 'Product created successfully', data: product });
         } catch (error) {
             next(error);
         }
