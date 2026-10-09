@@ -139,7 +139,7 @@ export default function AdminLayout() {
             </button>
 
             <button className="bg-[#1C382D] hover:bg-[#152a22] text-white px-4 py-2 rounded-full text-xs font-bold uppercase tracking-wider flex items-center space-x-2 transition-colors shadow-sm">
-              <Plus size5={14} />
+              <Plus size={14} />
               <span>Add product</span>
             </button>
 

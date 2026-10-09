@@ -39,7 +39,7 @@ export default function Subscriptions() {
   ]);
 
   const [notification, setNotification] = useState<string | null>(null);
-  const [editingSubId, setEditingSubId] = useState<string | null>(null);
+  //const [editingSubId, setEditingSubId] = useState<string | null>(null);
 
   const showToast = (message: string) => {
     setNotification(message);

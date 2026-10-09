@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Lock, Mail, ArrowRight, ShieldCheck, AlertCircle, Sparkles } from 'lucide-react';
+import { Lock, Mail, ArrowRight, ShieldCheck, AlertCircle } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
 export default function AdminLoginPage() {
@@ -9,11 +9,11 @@ export default function AdminLoginPage() {
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
 
-  const fillDemoCredentials = () => {
-    setEmail('admin@lumeaskin.com');
-    setPassword('admin123');
-    setError('');
-  };
+  // const fillDemoCredentials = () => {
+  //   setEmail('admin@lumeaskin.com');
+  //   setPassword('admin123');
+  //   setError('');
+  // };
 
   const handleLogin = (e: React.FormEvent) => {
     e.preventDefault();

@@ -25,7 +25,7 @@ export default function ProductDetail() {
   const [selectedSize, setSelectedSize] = useState('30 ml');
   const [purchaseOption, setPurchaseOption] = useState<'onetime' | 'subscribe'>('subscribe');
   const [quantity, setQuantity] = useState(1);
-  const [activeTab, setActiveTab] = useState<'description' | 'ingredients' | 'howtouse' | 'shipping'>('description');
+  //const [activeTab, setActiveTab] = useState<'description' | 'ingredients' | 'howtouse' | 'shipping'>('description');
   
   // Accordion open states
   const [openAccordions, setOpenAccordions] = useState({

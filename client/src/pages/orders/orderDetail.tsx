@@ -1,4 +1,3 @@
-import { useState } from 'react';
 import { CheckCircle2, ArrowLeft, MapPin } from 'lucide-react';
 import { Link, useParams } from 'react-router-dom';
 

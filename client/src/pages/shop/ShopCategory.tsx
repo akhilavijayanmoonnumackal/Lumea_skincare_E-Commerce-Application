@@ -12,10 +12,10 @@ import ritualKitImg from '../../assets/images/ritualKit.avif';
 import niacinamideImg from '../../assets/images/niacinamide.avif';
 
 export default function ShopCategory() {
-  const [selectedCategories, setSelectedCategories] = useState<string[]>(['Serums & Oils']);
-  const [selectedSkinTypes, setSelectedSkinTypes] = useState<string[]>(['Combination']);
+  //const [selectedCategories, setSelectedCategories] = useState<string[]>(['Serums & Oils']);
+  //const [selectedSkinTypes, setSelectedSkinTypes] = useState<string[]>(['Combination']);
   const [maxPrice, setMaxPrice] = useState<number>(5500);
-  const [sortBy, setSortBy] = useState('Most loved');
+  const [sortBy] = useState('Most loved');
 
   const products = [
     {
