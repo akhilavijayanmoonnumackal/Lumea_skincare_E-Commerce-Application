@@ -2,6 +2,7 @@ import express, { Application, Request, Response, NextFunction } from 'express';
 import cors from 'cors';
 import authRoutes from './routes/auth.routes';
 import productRoutes from './routes/product.routes';
+import categoryRoutes from './routes/category.routes';
 import { globalErrorHandler } from './middlewares/error.middleware';
 
 export function createApp(): Application {
@@ -14,6 +15,7 @@ export function createApp(): Application {
     //API Routes
     app.use('/api/auth', authRoutes);
     app.use('/api/products', productRoutes);
+    app.use('/api/categories', categoryRoutes);
 
     app.get('/health', (_req: Request, res: Response) => {
         res.status(200).json({ status: 'OK', timeStamp: new Date(), message: 'Luméa API is running' });
