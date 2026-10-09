@@ -7,7 +7,7 @@ const productSchema: Schema = new Schema<IProduct>({
     slug: { type: String, required: true, unique: true, lowercase: true, trim: true },
     description: { type: String, required: true },
     price: { type: Number, required: true, min: 0 },
-    category: { type: String, required: true, index: true },
+    category: { type: Schema.Types.ObjectId, ref: 'lumea_categories', required: true, index: true },
     stockCount: { type: Number, required: true, default:0, min: 0 },
     imageUrl: { type: String, required: true },
     isFeatured: { type: Boolean, default: false },

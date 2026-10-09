@@ -7,7 +7,7 @@ export interface IProduct extends Document {
     slug: string;
     description: string;
     price: number;
-    category: string;
+    category: Types.ObjectId;
     stockCount: number;
     imageUrl: string;
     isFeatured: boolean;
