@@ -7,6 +7,7 @@ import orderRoutes from './routes/order.routes';
 import adminUserRoutes from './routes/admin-user.routes';
 import adminDashboard from './routes/analytics.routes';
 import reviewRoutes from './routes/admin-review.routes';
+import userAuthRoutes from './routes/user-auth.routes';
 import { globalErrorHandler } from './middlewares/error.middleware';
 
 export function createApp(): Application {
@@ -24,6 +25,8 @@ export function createApp(): Application {
     app.use('/api/admin', adminUserRoutes);
     app.use('/api/dashboard', adminDashboard);
     app.use('/api/reviews', reviewRoutes);
+
+    app.use('/api/user-auth', userAuthRoutes);
 
     app.get('/health', (_req: Request, res: Response) => {
         res.status(200).json({ status: 'OK', timeStamp: new Date(), message: 'Luméa API is running' });
