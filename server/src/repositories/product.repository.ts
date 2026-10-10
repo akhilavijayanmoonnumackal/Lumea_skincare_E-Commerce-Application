@@ -36,4 +36,27 @@ export class ProductRepository {
     async delete(id: string): Promise<IProduct | null> {
         return PRODUCT.findByIdAndUpdate(id, { documentStatus: false }, { new: true });
     }
+
+    async deductStock(productId: string, quantity: number): Promise<IProduct | null> {
+        return PRODUCT.findOneAndUpdate(
+            { 
+                _id: productId, 
+                stockCount: { $gte: quantity } // Ensures stock doesn't drop below 0
+            },
+            { 
+                $inc: { stockCount: -quantity } 
+            },
+            { new: true }
+        );
+    }
+
+    async restoreStock(productId: string, quantity: number): Promise<IProduct | null> {
+        return PRODUCT.findByIdAndUpdate(
+            productId,
+            { 
+                $inc: { stockCount: quantity } 
+            },
+            { new: true }
+        );
+    }
 }

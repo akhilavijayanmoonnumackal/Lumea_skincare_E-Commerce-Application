@@ -20,4 +20,10 @@ export class OrderRepository {
             { new: true, runValidators: true }
         ).populate(['user', 'orderItems.product']);
     }
+
+    async create(data: Partial<IOrder>): Promise<IOrder> {
+        const order = new ORDER(data);
+        const savedOrder = await order.save();
+        return savedOrder.populate(['user', 'orderItems.product']);
+    }
 }
