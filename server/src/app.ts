@@ -12,6 +12,7 @@ import storefrontRoutes from './routes/storefront.routes';
 import customerOrderRoutes from './routes/customer-order.routes';
 import cartRoutes from './routes/cart.routes';
 import wishlistRoutes from './routes/wishlist.routes';
+import userReviewRoutes from './routes/review.routes';
 import { globalErrorHandler } from './middlewares/error.middleware';
 
 export function createApp(): Application {
@@ -35,6 +36,7 @@ export function createApp(): Application {
     app.use('/api/customerOrders', customerOrderRoutes);
     app.use('/api/cart', cartRoutes);
     app.use('/api/wishlist', wishlistRoutes);
+    app.use('/api/reviewUser', userReviewRoutes);
 
     app.get('/health', (_req: Request, res: Response) => {
         res.status(200).json({ status: 'OK', timeStamp: new Date(), message: 'Luméa API is running' });
