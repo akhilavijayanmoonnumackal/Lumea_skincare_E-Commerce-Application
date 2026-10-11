@@ -26,4 +26,10 @@ export class OrderRepository {
         const savedOrder = await order.save();
         return savedOrder.populate(['user', 'orderItems.product']);
     }
+
+    async findByUser(userId: string): Promise<IOrder[]> {
+        return ORDER.find({ user: userId })
+            .populate(['user', 'orderItems.product'])
+            .sort({ createdAt: -1 });
+    }
 }

@@ -41,7 +41,7 @@ export class ProductRepository {
         return PRODUCT.findOneAndUpdate(
             { 
                 _id: productId, 
-                stockCount: { $gte: quantity } // Ensures stock doesn't drop below 0
+                stockCount: { $gte: quantity }
             },
             { 
                 $inc: { stockCount: -quantity } 
