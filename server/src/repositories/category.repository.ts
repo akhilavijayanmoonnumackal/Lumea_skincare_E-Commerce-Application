@@ -22,4 +22,8 @@ export class CategoryRepository {
     async delete(id: string): Promise<ICategory | null> {
         return CATEGORY.findByIdAndDelete(id);
     }
+
+    async findAllPublic(): Promise<ICategory[]> {
+        return CATEGORY.find().sort({ name: 1 });
+    }
 }

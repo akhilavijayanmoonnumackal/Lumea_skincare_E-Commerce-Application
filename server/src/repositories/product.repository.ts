@@ -59,4 +59,20 @@ export class ProductRepository {
             { new: true }
         );
     }
+
+    async findPublicProducts(filter: any, skip: number, limit: number, sort: any): Promise<{ products: IProduct[]; total: number }> {
+        const [products, total] = await Promise.all([
+            PRODUCT.find(filter)
+                .populate('category', 'name slug')
+                .sort(sort)
+                .skip(skip)
+                .limit(limit),
+            PRODUCT.countDocuments(filter)
+        ]);
+        return { products, total };
+    }
+
+    async findBySlug(slug: string): Promise<IProduct | null> {
+        return PRODUCT.findOne({ slug }).populate('category', 'name slug');
+    }
 }
