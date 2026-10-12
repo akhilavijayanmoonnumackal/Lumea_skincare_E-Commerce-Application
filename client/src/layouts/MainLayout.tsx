@@ -1,9 +1,20 @@
 import { useState } from 'react';
-import { Outlet, Link } from 'react-router-dom';
-import { Search, User, Heart, ShoppingBag, Menu, X, Leaf, Star, Mail, ArrowRight } from 'lucide-react';
+import { Outlet, Link, useNavigate } from 'react-router-dom';
+import { Search, User, Heart, ShoppingBag, Menu, X, Leaf, Star, Mail, ArrowRight, LogOut, ShieldAlert } from 'lucide-react';
+import { useAuth } from '../context/useAuth.js';
 
 function MainLayout() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [accountDropdownOpen, setAccountDropdownOpen] = useState(false);
+  
+  const { user, isAuthenticated, logout } = useAuth();
+  const navigate = useNavigate();
+
+  const handleLogout = () => {
+    logout();
+    setAccountDropdownOpen(false);
+    navigate('/login');
+  };
 
   return (
     <div className="min-h-screen flex flex-col bg-[#FDFBF7] text-[#1E292B] font-sans antialiased selection:bg-[#274639] selection:text-white">
@@ -41,11 +52,11 @@ function MainLayout() {
 
           {/* Desktop Navigation Links */}
           <nav className="hidden md:flex items-center space-x-8 text-sm font-medium text-[#2C3E35]">
-            <Link to="/" className="hover:text-[#1C382D] transition-colors">Shop</Link>
-            <Link to="/" className="hover:text-[#1C382D] transition-colors">Bestsellers</Link>
-            <Link to="/" className="hover:text-[#1C382D] transition-colors">Skin Concerns</Link>
-            <Link to="/" className="hover:text-[#1C382D] transition-colors">Ingredients</Link>
-            <Link to="/" className="hover:text-[#1C382D] transition-colors">Journal</Link>
+            <Link to="/shop" className="hover:text-[#1C382D] transition-colors">Shop</Link>
+            <Link to="/shop" className="hover:text-[#1C382D] transition-colors">Bestsellers</Link>
+            <Link to="/quiz" className="hover:text-[#1C382D] transition-colors">Skin Quiz</Link>
+            <Link to="/rewards" className="hover:text-[#1C382D] transition-colors">Glow Rewards</Link>
+            <Link to="/support/guide" className="hover:text-[#1C382D] transition-colors">Skincare Guide</Link>
           </nav>
 
           {/* Action Icons */}
@@ -53,29 +64,117 @@ function MainLayout() {
             <button aria-label="Search" className="p-1 hover:opacity-75 transition-opacity">
               <Search size={20} strokeWidth={1.75} />
             </button>
-            <button aria-label="Account" className="p-1 hover:opacity-75 transition-opacity hidden sm:block">
-              <User size={20} strokeWidth={1.75} />
-            </button>
-            <button aria-label="Wishlist" className="p-1 hover:opacity-75 transition-opacity hidden sm:block">
+
+            {/* Account Icon & Dropdown */}
+            <div className="relative">
+              {isAuthenticated ? (
+                <button 
+                  onClick={() => setAccountDropdownOpen(!accountDropdownOpen)}
+                  aria-label="Account Menu" 
+                  className="p-1 hover:opacity-75 transition-opacity flex items-center gap-1.5"
+                >
+                  <User size={20} strokeWidth={1.75} />
+                  <span className="hidden lg:inline text-xs font-medium text-[#1C382D]">
+                    {user?.name?.split(' ')[0]}
+                  </span>
+                </button>
+              ) : (
+                <Link to="/login" aria-label="Login" className="p-1 hover:opacity-75 transition-opacity hidden sm:block">
+                  <User size={20} strokeWidth={1.75} />
+                </Link>
+              )}
+
+              {/* Logged In User Dropdown Menu */}
+              {isAuthenticated && accountDropdownOpen && (
+                <div 
+                  className="absolute right-0 mt-2 w-48 bg-[#FDFBF7] border border-[#E5E0D8] rounded-xl shadow-lg py-2 z-50 text-xs font-medium"
+                  onMouseLeave={() => setAccountDropdownOpen(false)}
+                >
+                  <div className="px-4 py-2 border-b border-[#E5E0D8]">
+                    <p className="font-semibold text-[#1C382D]">{user?.name}</p>
+                    <p className="text-[10px] text-gray-500 truncate">{user?.email}</p>
+                  </div>
+
+                  <Link 
+                    to="/account" 
+                    onClick={() => setAccountDropdownOpen(false)}
+                    className="block px-4 py-2 hover:bg-[#E5E0D8]/40 text-[#2C3E35] transition-colors"
+                  >
+                    Account Dashboard
+                  </Link>
+                  <Link 
+                    to="/account/order-history" 
+                    onClick={() => setAccountDropdownOpen(false)}
+                    className="block px-4 py-2 hover:bg-[#E5E0D8]/40 text-[#2C3E35] transition-colors"
+                  >
+                    Order History
+                  </Link>
+                  <Link 
+                    to="/account/profile" 
+                    onClick={() => setAccountDropdownOpen(false)}
+                    className="block px-4 py-2 hover:bg-[#E5E0D8]/40 text-[#2C3E35] transition-colors"
+                  >
+                    Profile Settings
+                  </Link>
+
+                  {/* Admin link if user has admin role */}
+                  {user?.role === 'admin' && (
+                    <Link 
+                      to="/admin/dashboard" 
+                      onClick={() => setAccountDropdownOpen(false)}
+                      className="flex items-center gap-1.5 px-4 py-2 text-[#BE6E4C] hover:bg-[#E5E0D8]/40 transition-colors border-t border-[#E5E0D8]"
+                    >
+                      <ShieldAlert size={14} /> Admin Portal
+                    </Link>
+                  )}
+
+                  <button 
+                    onClick={handleLogout}
+                    className="w-full text-left flex items-center gap-1.5 px-4 py-2 text-red-600 hover:bg-red-50 transition-colors border-t border-[#E5E0D8]"
+                  >
+                    <LogOut size={14} /> Log Out
+                  </button>
+                </div>
+              )}
+            </div>
+
+            {/* Wishlist Link */}
+            <Link to="/wishlist" aria-label="Wishlist" className="p-1 hover:opacity-75 transition-opacity hidden sm:block">
               <Heart size={20} strokeWidth={1.75} />
-            </button>
-            <button aria-label="Cart" className="p-1 relative hover:opacity-75 transition-opacity">
+            </Link>
+
+            {/* Cart Link */}
+            <Link to="/cart" aria-label="Cart" className="p-1 relative hover:opacity-75 transition-opacity">
               <ShoppingBag size={20} strokeWidth={1.75} />
               <span className="absolute -top-1 -right-1 bg-[#1C382D] text-white text-[10px] w-4 h-4 rounded-full flex items-center justify-center font-bold">
-                3
+                0
               </span>
-            </button>
+            </Link>
           </div>
         </div>
 
         {/* Mobile Navigation Drawer */}
         {mobileMenuOpen && (
           <div className="md:hidden absolute top-full left-0 w-full bg-[#FDFBF7] border-b border-[#E5E0D8] shadow-lg py-6 px-6 flex flex-col space-y-4 animate-fadeIn">
-            <Link to="/" onClick={() => setMobileMenuOpen(false)} className="text-lg font-medium text-[#1C382D]">Shop</Link>
-            <Link to="/" onClick={() => setMobileMenuOpen(false)} className="text-lg font-medium text-[#1C382D]">Bestsellers</Link>
-            <Link to="/" onClick={() => setMobileMenuOpen(false)} className="text-lg font-medium text-[#1C382D]">Skin Concerns</Link>
-            <Link to="/" onClick={() => setMobileMenuOpen(false)} className="text-lg font-medium text-[#1C382D]">Ingredients</Link>
-            <Link to="/" onClick={() => setMobileMenuOpen(false)} className="text-lg font-medium text-[#1C382D]">Journal</Link>
+            <Link to="/shop" onClick={() => setMobileMenuOpen(false)} className="text-lg font-medium text-[#1C382D]">Shop</Link>
+            <Link to="/quiz" onClick={() => setMobileMenuOpen(false)} className="text-lg font-medium text-[#1C382D]">Skin Quiz</Link>
+            <Link to="/rewards" onClick={() => setMobileMenuOpen(false)} className="text-lg font-medium text-[#1C382D]">Glow Rewards</Link>
+            <Link to="/support/guide" onClick={() => setMobileMenuOpen(false)} className="text-lg font-medium text-[#1C382D]">Skincare Guide</Link>
+            <Link to="/wishlist" onClick={() => setMobileMenuOpen(false)} className="text-lg font-medium text-[#1C382D]">Wishlist</Link>
+
+            {isAuthenticated ? (
+              <>
+                <Link to="/account" onClick={() => setMobileMenuOpen(false)} className="text-lg font-medium text-[#1C382D]">My Account</Link>
+                <button 
+                  onClick={() => { setMobileMenuOpen(false); handleLogout(); }}
+                  className="text-left text-lg font-medium text-red-600"
+                >
+                  Log Out
+                </button>
+              </>
+            ) : (
+              <Link to="/login" onClick={() => setMobileMenuOpen(false)} className="text-lg font-medium text-[#1C382D]">Log In / Sign Up</Link>
+            )}
           </div>
         )}
       </header>
@@ -85,7 +184,7 @@ function MainLayout() {
         <Outlet />
       </main>
 
-      {/* Footer Placeholder */}
+      {/* Footer */}
       <footer className="w-full bg-[#16241E] text-white pt-16 pb-8 border-t border-[#274639]">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           
@@ -102,7 +201,7 @@ function MainLayout() {
                 Clean, clinically-backed skincare formulated in small batches with biodegradable packaging.
               </p>
 
-              {/* Social / Circular Icons */}
+              {/* Social Icons */}
               <div className="flex items-center space-x-3">
                 <a href="#mail" className="w-10 h-10 rounded-full border border-white/20 flex items-center justify-center text-white/80 hover:text-white hover:border-white transition-colors">
                   <Mail size={16} />
@@ -123,12 +222,10 @@ function MainLayout() {
             <div className="lg:col-span-2">
               <h3 className="text-xs font-bold uppercase tracking-widest text-white mb-4">Shop</h3>
               <ul className="space-y-2.5 text-xs font-light text-white/70">
-                <li><Link to="/#cleansers" className="hover:text-white transition-colors">Cleansers</Link></li>
-                <li><Link to="/#serums" className="hover:text-white transition-colors">Serums</Link></li>
-                <li><Link to="/#moisturisers" className="hover:text-white transition-colors">Moisturisers</Link></li>
-                <li><Link to="/#suncare" className="hover:text-white transition-colors">Sun Care</Link></li>
-                <li><Link to="/#bundles" className="hover:text-white transition-colors">Bundles</Link></li>
-                <li><Link to="/#gift-cards" className="hover:text-white transition-colors">Gift Cards</Link></li>
+                <li><Link to="/shop" className="hover:text-white transition-colors">Cleansers</Link></li>
+                <li><Link to="/shop" className="hover:text-white transition-colors">Serums</Link></li>
+                <li><Link to="/shop" className="hover:text-white transition-colors">Moisturisers</Link></li>
+                <li><Link to="/shop" className="hover:text-white transition-colors">Sun Care</Link></li>
               </ul>
             </div>
 
@@ -136,27 +233,24 @@ function MainLayout() {
             <div className="lg:col-span-2">
               <h3 className="text-xs font-bold uppercase tracking-widest text-white mb-4">Help</h3>
               <ul className="space-y-2.5 text-xs font-light text-white/70">
-                <li><Link to="/track-order" className="hover:text-white transition-colors">Track Order</Link></li>
-                <li><Link to="/shipping" className="hover:text-white transition-colors">Shipping & Returns</Link></li>
-                <li><Link to="/faq" className="hover:text-white transition-colors">FAQ</Link></li>
-                <li><Link to="/contact" className="hover:text-white transition-colors">Contact Us</Link></li>
+                <li><Link to="/account/order-history" className="hover:text-white transition-colors">Track Order</Link></li>
+                <li><Link to="/support/guide" className="hover:text-white transition-colors">Skincare Guide</Link></li>
                 <li><Link to="/quiz" className="hover:text-white transition-colors">Skin Quiz</Link></li>
               </ul>
             </div>
 
-            {/* Col 4: About Links */}
+            {/* Col 4: Account / Quick Access */}
             <div className="lg:col-span-2">
-              <h3 className="text-xs font-bold uppercase tracking-widest text-white mb-4">About</h3>
+              <h3 className="text-xs font-bold uppercase tracking-widest text-white mb-4">Account</h3>
               <ul className="space-y-2.5 text-xs font-light text-white/70">
-                <li><Link to="/story" className="hover:text-white transition-colors">Our Story</Link></li>
-                <li><Link to="/ingredients" className="hover:text-white transition-colors">Ingredients Index</Link></li>
-                <li><Link to="/sustainability" className="hover:text-white transition-colors">Sustainability</Link></li>
-                <li><Link to="/journal" className="hover:text-white transition-colors">Journal</Link></li>
-                <li><Link to="/careers" className="hover:text-white transition-colors">Careers</Link></li>
+                <li><Link to="/account" className="hover:text-white transition-colors">Dashboard</Link></li>
+                <li><Link to="/wishlist" className="hover:text-white transition-colors">Wishlist</Link></li>
+                <li><Link to="/cart" className="hover:text-white transition-colors">Cart</Link></li>
+                <li><Link to="/rewards" className="hover:text-white transition-colors">Glow Rewards</Link></li>
               </ul>
             </div>
 
-            {/* Col 5: Stay in the Glow Newsletter */}
+            {/* Col 5: Newsletter */}
             <div className="lg:col-span-2">
               <h3 className="text-xs font-bold uppercase tracking-widest text-white mb-2">Stay in the glow</h3>
               <p className="text-xs text-white/70 font-light mb-4">Skin tips + 10% off your first order.</p>
@@ -178,7 +272,7 @@ function MainLayout() {
 
           </div>
 
-          {/* Bottom Footer Row: Copyright, Payment Badges & Legal links */}
+          {/* Bottom Footer Row */}
           <div className="pt-8 flex flex-col md:flex-row items-center justify-between text-[11px] text-white/60 space-y-4 md:space-y-0">
             <div>
               <p>© 2026 Lum<span className='text-[#BE6E4C]'>é</span>a Skincare. All rights reserved.</p>
