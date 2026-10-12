@@ -1,6 +1,7 @@
 import { createBrowserRouter, Navigate } from 'react-router-dom';
 import MainLayout from '../layouts/MainLayout';
 import AdminLayout from '../layouts/AdminLayout';
+import { ProtectedRoute } from '../components/ProtectedRoute';
 
 import Home from '../pages/home/Home';
 import ShopCategory from '../pages/shop/ShopCategory';
@@ -34,12 +35,12 @@ import AdminNotificationsPage from '../pages/admin/NotificationsPage';
 import AdminSettingsPage from '../pages/admin/SettingsPage';
 import AdminLoginPage from '../pages/admin/AdminLoginPage';
 
-
 export const router = createBrowserRouter([
     {
         path: "/",
         element: <MainLayout />,
         children: [
+            // Public Storefront Routes
             {
                 index: true,
                 element: <Home />,
@@ -53,42 +54,6 @@ export const router = createBrowserRouter([
                 element: <ProductDetail />,
             },
             {
-                path: "cart",
-                element: <Cart />,
-            },
-            {
-                path: "checkout",
-                element: <Checkout />,
-            },
-            {
-                path: "account/order-history",
-                element: <OrderHistory />,
-            },
-            {
-                path: "account",
-                element: <AccountDashboard />,
-            },
-            {
-                path: "account/profile",
-                element: <EditProfile />,
-            },
-            {
-                path: "account/address",
-                element: <AddressBook />,
-            },
-            {
-                path: "account/subscriptions",
-                element: <Subscriptions />,
-            },
-            {
-                path: "account/orders/:id",
-                element: <OrderDetail />,
-            },
-            {
-                path: "wishlist",
-                element: <Wishlist />,
-            },
-            {
                 path: "quiz",
                 element: <SkinQuiz />,
             },
@@ -100,12 +65,57 @@ export const router = createBrowserRouter([
                 path: "support/guide",
                 element: <SkincareGuide />
             },
+
+            // Protected Customer Routes
+            {
+                element: <ProtectedRoute />,
+                children: [
+                    {
+                        path: "cart",
+                        element: <Cart />,
+                    },
+                    {
+                        path: "checkout",
+                        element: <Checkout />,
+                    },
+                    {
+                        path: "wishlist",
+                        element: <Wishlist />,
+                    },
+                    {
+                        path: "account",
+                        element: <AccountDashboard />,
+                    },
+                    {
+                        path: "account/order-history",
+                        element: <OrderHistory />,
+                    },
+                    {
+                        path: "account/profile",
+                        element: <EditProfile />,
+                    },
+                    {
+                        path: "account/address",
+                        element: <AddressBook />,
+                    },
+                    {
+                        path: "account/subscriptions",
+                        element: <Subscriptions />,
+                    },
+                    {
+                        path: "account/orders/:id",
+                        element: <OrderDetail />,
+                    },
+                ],
+            },
+
             {
                 path: "*",
                 element: <NotFound />,
             },
         ],
     },
+
     {
         path: "/login",
         element: <Login />,
@@ -125,52 +135,57 @@ export const router = createBrowserRouter([
     // ADMIN CONTROL
     {
         path: "/admin",
-        element: <AdminLayout />,
+        element: <ProtectedRoute />,
         children: [
             {
-                index: true,
-                element: <Navigate to="dashboard" replace />
+                element: <AdminLayout />,
+                children: [
+                    {
+                        index: true,
+                        element: <Navigate to="dashboard" replace />
+                    },
+                    {
+                        path: "dashboard",
+                        element: <DashboardPage />,
+                    },
+                    {
+                        path: "orders",
+                        element: <OrdersPage />,
+                    },
+                    {
+                        path: "products",
+                        element: <AdminProductsPage />,
+                    },
+                    {
+                        path: "subscriptions",
+                        element: <AdminSubscriptionsPage />,
+                    },
+                    {
+                        path: "customers",
+                        element: <AdminCustomersPage />,
+                    },
+                    {
+                        path: "categories",
+                        element: <AdminCategoriesPage />,
+                    },
+                    {
+                        path: "reviews",
+                        element: <AdminReviewsPage />,
+                    },
+                    {
+                        path: "inventory",
+                        element: <AdminInventoryPage />,
+                    },
+                    {
+                        path: "notifications",
+                        element: <AdminNotificationsPage />,
+                    },
+                    {
+                        path: "settings",
+                        element: <AdminSettingsPage />,
+                    },
+                ],
             },
-            {
-                path: "dashboard",
-                element: <DashboardPage />,
-            },
-            {
-                path: "orders",
-                element: <OrdersPage />,
-            },
-            {
-                path: "products",
-                element: <AdminProductsPage />,
-            },
-            {
-                path: "subscriptions",
-                element: <AdminSubscriptionsPage />,
-            },
-            {
-                path: "customers",
-                element: <AdminCustomersPage />,
-            },
-            {
-                path: "categories",
-                element: <AdminCategoriesPage />,
-            },
-            {
-                path: "reviews",
-                element: <AdminReviewsPage />,
-            },
-            {
-                path: "inventory",
-                element: <AdminInventoryPage />,
-            },
-            {
-                path: "notifications",
-                element: <AdminNotificationsPage />,
-            },
-            {
-                path: "settings",
-                element: <AdminSettingsPage />,
-            },
-        ]
-    }
+        ],
+    },
 ]);
