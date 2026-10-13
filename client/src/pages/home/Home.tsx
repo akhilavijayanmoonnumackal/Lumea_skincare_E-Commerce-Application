@@ -155,7 +155,7 @@ export default function Home() {
             {/* CTA Buttons */}
             <div className="flex flex-col sm:flex-row items-stretch sm:items-center space-y-3 sm:space-y-0 sm:space-x-4 w-full sm:w-auto mb-12">
               <a
-                href="#shop"
+                href="/shop"
                 className="inline-flex items-center justify-center space-x-3 bg-[#1C382D] text-white px-7 py-4 rounded-full text-sm font-medium hover:bg-[#274639] transition-all shadow-sm group"
               >
                 <span>Shop bestsellers</span>
