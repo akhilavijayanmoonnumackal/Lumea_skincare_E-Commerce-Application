@@ -5,7 +5,7 @@ export const ProtectedRoute = () => {
     const { isAuthenticated, loading } = useAuth();
 
     if(loading) {
-        return <div className="flex items-center justify-center h-screen">Loading Luméa...</div>;
+        return <div className="min-h-screen flex items-center justify-center bg-[#FDFBF7]">Loading Luméa...</div>;
     }
 
     return isAuthenticated ? <Outlet /> : <Navigate to='/login' replace/>;

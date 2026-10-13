@@ -38,8 +38,17 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
             if (savedToken) {
                 try {
                     const res = await getProfile();
-                    if(res.success && res.user) {
-                        setUser(res.user);
+
+                    let userProfile: User | null = null;
+
+                    if(res.user) {
+                        userProfile = res.user;
+                    } else if(res.data) {
+                        userProfile = 'user' in res.data ? res.data.user : (res.data as unknown as User);
+                    }
+
+                    if(res.success && userProfile && userProfile._id) {
+                        setUser(userProfile);
                         setToken(savedToken);
                     } else {
                         logout();
