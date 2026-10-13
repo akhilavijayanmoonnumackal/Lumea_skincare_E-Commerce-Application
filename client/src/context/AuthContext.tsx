@@ -55,10 +55,12 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
     const login = async (credentials: LoginPayload) => {
         const res = await loginUser(credentials);
-        if(res.success && res.token && res.user) {
-            localStorage.setItem('lumea_token', res.token);
-            setToken(res.token);
-            setUser(res.user);
+        const authData = res.data || res;
+
+        if(res.success && authData.token && authData.user) {
+            localStorage.setItem('lumea_token', authData.token);
+            setToken(authData.token);
+            setUser(authData.user);
         } else {
             throw new Error(res.message || 'Login failed');
         }
@@ -66,10 +68,12 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
     const register = async (credentials: RegisterPayload) => {
         const res = await registerUser(credentials);
-        if(res.success && res.token && res.user) {
-            localStorage.setItem('lumea_token', res.token);
-            setToken(res.token);
-            setUser(res.user);
+        const authData = res.data || res;
+
+        if(res.success && authData.token && authData.user) {
+            localStorage.setItem('lumea_token', authData.token);
+            setToken(authData.token);
+            setUser(authData.user);
         } else {
             throw new Error(res.message || 'Registration failed');
         }
@@ -80,7 +84,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
             value={{
                 user,
                 token,
-                isAuthenticated: !!token && !user,
+                isAuthenticated: !!token && !!user,
                 loading,
                 login,
                 register,

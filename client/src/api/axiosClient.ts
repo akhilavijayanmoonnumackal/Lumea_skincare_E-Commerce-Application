@@ -9,7 +9,7 @@ const axiosClient: AxiosInstance = axios.create({
 
 axiosClient.interceptors.request.use(
     (config: InternalAxiosRequestConfig) => {
-        const token = localStorage.getItem('lumea_token');
+        const token = localStorage.getItem('lumea_token') || localStorage.getItem('token');
         if(token && config.headers) {
             config.headers.Authorization = `Bearer ${token}`;
         }
@@ -23,6 +23,7 @@ axiosClient.interceptors.request.use(
     (error) => {
         if(error.response?.status === 401) {
             localStorage.removeItem('lumea_token');
+            localStorage.removeItem('token');
         }
         return Promise.reject(error);
     }

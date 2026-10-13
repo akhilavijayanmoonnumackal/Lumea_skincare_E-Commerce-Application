@@ -1,15 +1,51 @@
-import { useState } from 'react';
-import { Mail, Lock } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import { useState, type FormEvent } from 'react';
+import { Mail, Lock, Loader2 } from 'lucide-react';
+import { Link, useNavigate } from 'react-router-dom';
 
 import spaModelImg from '../../assets/images/login.avif'; 
+import { useAuth } from '../../context/useAuth';
 
 export default function Login() {
   const [activeTab, setActiveTab] = useState<'login' | 'register'>('login');
   const [showPassword, setShowPassword] = useState(false);
-  const [email, setEmail] = useState('akhila@email.com');
-  const [password, setPassword] = useState('••••••••••');
-  const [keepSigned, setKeepSigned] = useState(true);
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [error, setError] = useState<string | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const { login } = useAuth();
+  const navigate = useNavigate();
+
+  const handleTabSwitch = (tab: 'login' | 'register') => {
+    setActiveTab(tab);
+    if(tab === 'register') {
+      navigate('/signup');
+    }
+  };
+
+  const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    setError(null);
+    setIsSubmitting(true);
+
+    try {
+      const cleanedEmail = email.trim().toLowerCase();
+      const cleanedPassword = password.trim();
+
+      await login({ email: cleanedEmail, password: cleanedPassword });
+      setTimeout(() => {
+        navigate('/', { replace: true });
+      }, 100);
+    } catch (err: unknown) {
+      if(err instanceof Error) {
+        setError(err.message);
+      } else {
+        setError('Invalid email or password. Please try again.');
+      }
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
 
   return (
     <div className="w-full min-h-screen bg-[#FDFBF7] flex flex-col lg:flex-row">
@@ -63,7 +99,7 @@ export default function Login() {
           {/* Toggle Pill Navigation */}
           <div className="bg-[#EFECE6] p-1 rounded-full flex items-center space-x-1">
             <button 
-              onClick={() => setActiveTab('login')}
+              onClick={() => handleTabSwitch('login')}
               className={`flex-1 py-2.5 rounded-full text-xs font-bold transition-all ${
                 activeTab === 'login' ? 'bg-white text-[#1C382D] shadow-sm' : 'text-gray-500 hover:text-[#1C382D]'
               }`}
@@ -71,7 +107,7 @@ export default function Login() {
               Log in
             </button>
             <button 
-              onClick={() => setActiveTab('register')}
+              onClick={() => handleTabSwitch('register')}
               className={`flex-1 py-2.5 rounded-full text-xs font-bold transition-all ${
                 activeTab === 'register' ? 'bg-white text-[#1C382D] shadow-sm' : 'text-gray-500 hover:text-[#1C382D]'
               }`}
@@ -80,8 +116,15 @@ export default function Login() {
             </button>
           </div>
 
+          {/* Error alert */}
+          {error && (
+            <div className='bg-red-50 border border-red-200 text-red-600 px-4 py-3 rounded-2xl text-xs'>
+              {error}
+            </div>
+          )}
+
           {/* Form Fields */}
-          <form onSubmit={(e) => e.preventDefault()} className="space-y-5">
+          <form onSubmit={handleSubmit} className="space-y-5">
             
             {/* Email Field */}
             <div className="space-y-1.5">
@@ -96,6 +139,7 @@ export default function Login() {
                   type="email" 
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
+                  placeholder='Enter your email'
                   className="w-full bg-white border border-[#E5E0D8] rounded-2xl pl-11 pr-4 py-3.5 text-xs text-[#1C382D] focus:outline-none focus:border-[#1C382D]"
                   required
                 />
@@ -115,6 +159,7 @@ export default function Login() {
                   type={showPassword ? 'text' : 'password'} 
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
+                  placeholder='Enter your password'
                   className="w-full bg-white border border-[#E5E0D8] rounded-2xl pl-11 pr-16 py-3.5 text-xs text-[#1C382D] focus:outline-none focus:border-[#1C382D]"
                   required
                 />
@@ -133,8 +178,7 @@ export default function Login() {
               <label className="flex items-center space-x-2.5 cursor-pointer">
                 <input 
                   type="checkbox" 
-                  checked={keepSigned}
-                  onChange={() => setKeepSigned(!keepSigned)}
+                  defaultChecked
                   className="w-4 h-4 rounded border-gray-300 text-[#1C382D] focus:ring-[#1C382D]"
                 />
                 <span className="text-xs text-gray-600 font-light">Keep me signed in</span>
@@ -148,9 +192,17 @@ export default function Login() {
             {/* Submit Button */}
             <button 
               type="submit"
+              disabled={isSubmitting}
               className="w-full bg-[#1C382D] hover:bg-[#152a22] text-white py-4 rounded-full text-xs font-bold uppercase tracking-wider transition-colors shadow-lg flex items-center justify-center space-x-2"
             >
-              <span>Log in</span>
+              {isSubmitting ? (
+                <>
+                  <Loader2 className='animate-spin' size={16} />
+                  <span>Logging in...</span>
+                </>
+              ) : (
+                <span>Log in</span>
+              )}
             </button>
           </form>
 
@@ -183,7 +235,11 @@ export default function Login() {
 
           {/* Footer prompt */}
           <p className="text-center text-xs text-gray-500 font-light pt-2">
-            New to Lum<span className='text-[#BE6E4C]'>é</span>a? <Link to="/register" className="text-[#1C382D] font-bold underline">Create an account</Link> and get 10% off your first order.
+            New to Lum<span className='text-[#BE6E4C]'>é</span>a? {' '}
+            <Link to="/signup" className="text-[#1C382D] font-bold underline">
+            Create an account
+            </Link>{' '} 
+            and get 10% off your first order.
           </p>
 
         </div>

@@ -1,8 +1,9 @@
-import { useState } from 'react';
-import { Mail, Lock, User } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import { useState, type FormEvent } from 'react';
+import { Mail, Lock, User, Loader2 } from 'lucide-react';
+import { Link, useNavigate } from 'react-router-dom';
 
 import spaModelImg from '../../assets/images/login.avif'; 
+import { useAuth } from '../../context/useAuth';
 
 export default function Signup() {
   const [showPassword, setShowPassword] = useState(false);
@@ -11,6 +12,37 @@ export default function Signup() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [agreeTerms, setAgreeTerms] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const { register } = useAuth();
+  const navigate = useNavigate();
+
+  const handleSubmit = async (e: FormEvent<HTMLElement>) => {
+    e.preventDefault();
+    setError(null);
+
+    if(!agreeTerms) {
+      setError('Please accept the Terms of Service & Privacy Policy to continue.');
+      return;
+    }
+
+    setIsSubmitting(true);
+
+    try {
+      const fullName = `${firstName.trim()} ${lastName.trim()}`.trim();
+      await register({ name: fullName, email, password });
+      navigate('/');
+    } catch (err: unknown) {
+      if(err instanceof Error) {
+        setError(err.message);
+      } else {
+        setError('Registration failed. Please try again.');
+      }
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
 
   return (
     <div className="w-full min-h-screen bg-[#FDFBF7] flex flex-col lg:flex-row">
@@ -43,9 +75,11 @@ export default function Signup() {
           
           {/* Brand Logo Header */}
           <div className="text-center lg:text-left space-y-1">
-            <h1 className="font-serif text-2xl tracking-wider text-[#1C382D]">
-              Lum<span className='text-[#BE6E4C]'>é</span>a
-            </h1>
+            <Link to='/' className='inline-block'>
+              <h1 className="font-serif text-2xl tracking-wider text-[#1C382D]">
+                Lum<span className='text-[#BE6E4C]'>é</span>a
+              </h1>
+            </Link>
             <p className="text-[10px] uppercase tracking-widest text-gray-400 font-semibold">
               Skincare
             </p>
@@ -74,8 +108,14 @@ export default function Signup() {
             </div>
           </div>
 
+          {error && (
+            <div className='bg-red-50 border border-red-200 text-red-600 px-4 py-3 rounded-2xl text-xs'>
+              {error}
+            </div>
+          )}
+
           {/* Form Fields */}
-          <form onSubmit={(e) => e.preventDefault()} className="space-y-4">
+          <form onSubmit={handleSubmit} className="space-y-4">
             
             {/* First & Last Name */}
             <div className="grid grid-cols-2 gap-3">
@@ -178,9 +218,17 @@ export default function Signup() {
             {/* Submit Button */}
             <button 
               type="submit"
+              disabled={isSubmitting}
               className="w-full bg-[#1C382D] hover:bg-[#152a22] text-white py-4 rounded-full text-xs font-bold uppercase tracking-wider transition-colors shadow-lg flex items-center justify-center space-x-2 mt-2"
             >
-              <span>Create account</span>
+              {isSubmitting ? (
+                <>
+                  <Loader2 className='animate-spin' size={16}/>
+                  <span>Creating account...</span>
+                </>
+              ) : (
+                <span>Create account</span>
+              )}
             </button>
           </form>
 

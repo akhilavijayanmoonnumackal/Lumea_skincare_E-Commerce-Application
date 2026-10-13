@@ -21,6 +21,16 @@ export interface AuthResponse {
         email: string;
         role?: string;
     };
+
+    data?: {
+        token: string;
+        user: {
+            _id: string;
+            name: string;
+            email: string;
+            role?: string;
+        };
+    };
 }
 
 export const registerUser = async (payload: RegisterPayload): Promise<AuthResponse> => {
