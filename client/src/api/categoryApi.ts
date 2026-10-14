@@ -5,7 +5,7 @@ export interface Category {
     name: string;
     slug: string;
     description?: string;
-    image?: string;
+    imageUrl?: string;
 }
 
 export interface CategoryResponse {

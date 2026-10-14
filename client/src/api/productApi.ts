@@ -16,7 +16,7 @@ export interface Product {
     reviews: number;
     price: number;
     oldPrice?: number;
-    image: string;
+    imageUrl: string;
     link: string;
 }
 
