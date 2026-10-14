@@ -231,7 +231,7 @@ export default function ShopCategory() {
 
                       <img 
                         src={product.imageUrl} 
-                        alt={product.title} 
+                        alt={product.name} 
                         className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                       />
                     </div>
@@ -242,7 +242,7 @@ export default function ShopCategory() {
                           {getCategoryName(product.category)}
                         </span>
                         <h3 className="font-serif text-lg text-[#1C382D] font-normal mb-2">
-                          {product.title}
+                          {product.name}
                         </h3>
                         
                         <div className="flex items-center space-x-1.5 mb-3">
