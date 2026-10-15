@@ -1,16 +1,22 @@
 import { useState, useEffect } from "react";
-import { Star, ChevronDown, Grid, X, SlidersHorizontal, Heart, ChevronLeft, ChevronRight, Loader2 } from 'lucide-react';
-import { useSearchParams } from 'react-router-dom';
+import { Star, ChevronDown, Grid, X, SlidersHorizontal, Heart, ChevronLeft, ChevronRight, Loader2, ShoppingBag, Check } from 'lucide-react';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { getProducts, type CategoryObject, type Product } from '../../api/productApi';
+import { useAuth } from "../../context/useAuth";
 
 export default function ShopCategory() {
   const [searchParams, setSearchParams] = useSearchParams();
   const categoryParam = searchParams.get('category'); 
 
+  const { isAuthenticated } = useAuth();
+  const navigate = useNavigate();
+
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [maxPrice, setMaxPrice] = useState<number>(5500);
   const [sortBy] = useState('Most loved');
+  const [addingId, setAddingId] = useState<string | null>(null);
+  const [addedId, setAddedId] = useState<string | null>(null);
 
   const selectedCategory = categoryParam || 'all';
 
@@ -68,6 +74,23 @@ export default function ShopCategory() {
     } else {
       setSearchParams({ category: catName.toLowerCase() });
     }
+  };
+
+  const handleAddToCart = (productId: string) => {
+    if (!isAuthenticated) {
+      navigate('/login');
+      return;
+    }
+    setAddingId(productId);
+
+    setTimeout(() => {
+      setAddingId(null);
+      setAddedId(productId);
+
+      setTimeout(() => {
+        setAddedId(null);
+      }, 2000);
+    }, 600);
   };
 
   if (loading) {
@@ -255,11 +278,38 @@ export default function ShopCategory() {
                         </div>
                       </div>
 
-                      <div className="flex items-center space-x-2 pt-2 border-t border-gray-100">
-                        <span className="text-sm font-bold text-[#1C382D]">₹{product.price.toLocaleString('en-IN')}</span>
-                        {product.oldPrice && (
-                          <span className="text-xs text-gray-400 line-through">₹{product.oldPrice.toLocaleString('en-IN')}</span>
-                        )}
+                      <div className="pt-3 border-t border-gray-100 flex items-center justify-between gap-2">
+                        <div className="flex flex-col">
+                          <span className="text-sm font-bold text-[#1C382D]">₹{product.price.toLocaleString('en-IN')}</span>
+                          {product.oldPrice && (
+                            <span className="text-[10px] text-gray-400 line-through">₹{product.oldPrice.toLocaleString('en-IN')}</span>
+                          )}
+                        </div>
+
+                        {/* Add to Cart Button */}
+                        <button 
+                          onClick={() => handleAddToCart(product._id)}
+                          disabled={addingId === product._id}
+                          className={`px-3.5 py-2 rounded-full text-xs font-bold tracking-wider transition-all duration-200 flex items-center space-x-1.5 shadow-sm ${
+                            addedId === product._id
+                              ? 'bg-emerald-700 text-white'
+                              : 'bg-[#F4F1EA] text-[#1C382D] hover:bg-[#1C382D] hover:text-white'
+                          }`}
+                        >
+                          {addingId === product._id ? (
+                            <Loader2 className="animate-spin" size={14} />
+                          ) : addedId === product._id ? (
+                            <>
+                              <Check size={14} />
+                              <span>Added</span>
+                            </>
+                          ) : (
+                            <>
+                              <ShoppingBag size={13} />
+                              <span>Add</span>
+                            </>
+                          )}
+                        </button>
                       </div>
                     </div>
                   </div>
