@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { 
   Minus, 
   Plus, 
@@ -8,117 +8,81 @@ import {
   ArrowRight, 
   Lock, 
   Star,
-  Heart
+  Heart,
+  Loader2
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
-
-// Local asset imports
-import serumsImg from '../../assets/images/serums&oils.avif';
-import cleanserImg from '../../assets/images/cleansers.avif';
-import suncareImg from '../../assets/images/suncare.avif';
-import moisturiserImg from '../../assets/images/moisturisers.avif';
-import tonerImg from '../../assets/images/hydrating.avif';
-import polishImg from '../../assets/images/rose.avif';
-
-interface CartItem {
-  id: number;
-  title: string;
-  variant: string;
-  price: number;
-  unitPriceText: string;
-  quantity: number;
-  image: string;
-}
+import { getCart, updateCartItemApi, removeFromCartApi, type CartItemBackend } from '../../api/cartApi';
 
 export default function Cart() {
-  const [cartItems, setCartItems] = useState<CartItem[]>([
-    {
-      id: 1,
-      title: "Vitamin C Glow Serum",
-      variant: "30 ml - Subscribe & save",
-      price: 2950,
-      unitPriceText: "₹2,950 each",
-      quantity: 1,
-      image: serumsImg
-    },
-    {
-      id: 2,
-      title: "Gentle Milk Cleanser",
-      variant: "150 ml - One-time",
-      price: 1850,
-      unitPriceText: "₹1,850 each",
-      quantity: 2,
-      image: cleanserImg
-    },
-    {
-      id: 3,
-      title: "Mineral Daily SPF 50",
-      variant: "50 ml - One-time",
-      price: 2200,
-      unitPriceText: "₹2,200 each",
-      quantity: 1,
-      image: suncareImg
-    }
-  ]);
+  const [cartItems, setCartItems] = useState<CartItemBackend[]>([]);
+  const [loading, setLoading] = useState<boolean>(true);
 
   const [promoCode, setPromoCode] = useState('');
   const [discountApplied, setDiscountApplied] = useState(false);
 
-  const updateQuantity = (id: number, delta: number) => {
-    setCartItems(prev => prev.map(item => {
-      if (item.id === id) {
-        const newQty = item.quantity + delta;
-        return newQty > 0 ? { ...item, quantity: newQty } : item;
+  useEffect(() => {
+    const fetchCart = async () => {
+      try {
+        const res = await getCart();
+        if (res.success && res.data && Array.isArray(res.data.items)) {
+          setCartItems(res.data.items);
+        }
+      } catch (err) {
+        console.error('Failed to fetch cart:', err);
+      } finally {
+        setLoading(false);
       }
-      return item;
-    }));
+    };
+    fetchCart();
+  }, []);
+
+  const updateQuantity = async (itemId: string, currentQty: number, delta: number) => {
+    const newQty = currentQty + delta;
+    if(newQty <= 0) return;
+
+    try {
+      const res = await updateCartItemApi(itemId, newQty);
+      if (res.success && res.data && Array.isArray(res.data.items)) {
+        setCartItems(res.data.items);
+      } else {
+        setCartItems(prev => prev.map(item => item._id === itemId ? { ...item, quantity: newQty } : item));
+      }
+    } catch (err) {
+      console.error('Failed to update quantity', err);
+    }
   };
 
-  const removeItem = (id: number) => {
-    setCartItems(prev => prev.filter(item => item.id !== id));
+  const removeItem = async (itemId: string) => {
+    try {
+      const res = await removeFromCartApi(itemId);
+      if (res.success && res.data && Array.isArray(res.data.items)) {
+        setCartItems(res.data.items);
+      } else {
+        setCartItems(prev => prev.filter(item => item._id !== itemId));
+      }
+    } catch (err) {
+      console.error('Failed to remove item', err);
+    }
   };
 
   const totalItemsCount = cartItems.reduce((acc, item) => acc + item.quantity, 0);
-  const subtotal = cartItems.reduce((acc, item) => acc + (item.price * item.quantity), 0);
-  const subscriptionDiscount = 500; // Simulated discount amount
+  const subtotal = cartItems.reduce((acc, item) => acc + ((item.product?.price || 0) * item.quantity), 0);
+  const subscriptionDiscount = 500;
   const tax = Math.round(subtotal * 0.08);
-  const finalTotal = subtotal - subscriptionDiscount + tax - (discountApplied ? 300 : 0);
+  const finalTotal = Math.max(0, subtotal - subscriptionDiscount + tax - (discountApplied ? 300 : 0));
   
   const freeShippingThreshold = 4000;
   const amountAwayFromFreeShipping = Math.max(0, freeShippingThreshold - subtotal);
   const shippingProgress = Math.min(100, (subtotal / freeShippingThreshold) * 100);
 
-  const recommendations = [
-    {
-      id: 1,
-      title: "Barrier Repair Cream",
-      category: "MOISTURISER",
-      rating: 5,
-      reviews: 168,
-      price: 2600,
-      image: moisturiserImg
-    },
-    {
-      id: 2,
-      title: "Hydrating Essence Toner",
-      category: "TONER",
-      rating: 5,
-      reviews: 245,
-      price: 1650,
-      image: tonerImg
-    },
-    {
-      id: 3,
-      title: "Rose Exfoliating Polish",
-      category: "EXFOLIANT",
-      badge: "20% OFF",
-      rating: 5,
-      reviews: 89,
-      price: 2400,
-      oldPrice: 3000,
-      image: polishImg
-    }
-  ];
+  if (loading) {
+    return (
+      <div className="w-full bg-[#FDFBF7] min-h-[70vh] flex items-center justify-center">
+        <Loader2 className="animate-spin text-[#1C382D]" size={36} />
+      </div>
+    );
+  }
 
   return (
     <div className="w-full bg-[#FDFBF7] min-h-screen py-8">
@@ -176,29 +140,29 @@ export default function Cart() {
             ) : (
               cartItems.map((item) => (
                 <div 
-                  key={item.id}
+                  key={item._id}
                   className="bg-white rounded-3xl p-6 border border-[#E5E0D8]/80 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6 shadow-sm"
                 >
                   <div className="flex items-center space-x-4">
                     <div className="w-24 h-24 rounded-2xl bg-[#F4F1EA] overflow-hidden flex-shrink-0 flex items-center justify-center">
-                      <img src={item.image} alt={item.title} className="w-full h-full object-cover" />
+                      <img src={item.product?.imageUrl} alt={item.product?.name} className="w-full h-full object-cover" />
                     </div>
                     <div>
-                      <h3 className="font-serif text-lg text-[#1C382D] mb-0.5">{item.title}</h3>
-                      <p className="text-xs text-gray-500 font-light mb-4">{item.variant}</p>
+                      <h3 className="font-serif text-lg text-[#1C382D] mb-0.5">{item.product?.name}</h3>
+                      <p className="text-xs text-gray-500 font-light mb-4">{item.variant || 'Standard'}</p>
                       
                       {/* Quantity Controls & Actions */}
                       <div className="flex items-center space-x-4">
                         <div className="flex items-center border border-[#E5E0D8] rounded-full px-3 py-1.5 bg-[#FDFBF7]">
                           <button 
-                            onClick={() => updateQuantity(item.id, -1)} 
+                            onClick={() => updateQuantity(item._id, item.quantity, -1)} 
                             className="text-gray-500 hover:text-[#1C382D]"
                           >
                             <Minus size={12} />
                           </button>
                           <span className="mx-3 text-xs font-bold text-[#1C382D]">{item.quantity}</span>
                           <button 
-                            onClick={() => updateQuantity(item.id, 1)} 
+                            onClick={() => updateQuantity(item._id, item.quantity, 1)} 
                             className="text-gray-500 hover:text-[#1C382D]"
                           >
                             <Plus size={12} />
@@ -211,7 +175,7 @@ export default function Cart() {
                         </button>
 
                         <button 
-                          onClick={() => removeItem(item.id)}
+                          onClick={() => removeItem(item._id)}
                           className="text-xs text-red-500/80 hover:text-red-600 flex items-center space-x-1 font-light"
                         >
                           <Trash2 size={13} />
@@ -223,8 +187,8 @@ export default function Cart() {
 
                   {/* Price */}
                   <div className="text-right sm:self-center w-full sm:w-auto flex sm:flex-col justify-between items-center sm:items-end border-t sm:border-t-0 pt-3 sm:pt-0 border-gray-100">
-                    <span className="text-base font-bold text-[#1C382D]">₹{(item.price * item.quantity).toLocaleString('en-IN')}</span>
-                    <span className="text-[11px] text-gray-400 font-light">{item.unitPriceText}</span>
+                    <span className="text-base font-bold text-[#1C382D]">₹{((item.product?.price || 0) * item.quantity).toLocaleString('en-IN')}</span>
+                    <span className="text-[11px] text-gray-400 font-light">₹{(item.product?.price || 0).toLocaleString('en-IN')}</span>
                   </div>
                 </div>
               ))
@@ -321,48 +285,6 @@ export default function Cart() {
 
           </div>
 
-        </div>
-
-        {/* You May Also Like Section */}
-        <div className="mt-20 border-t border-[#E5E0D8] pt-12">
-          <h2 className="font-serif text-2xl sm:text-3xl text-[#1C382D] mb-8">You may also like</h2>
-
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
-            {recommendations.map(prod => (
-              <div key={prod.id} className="bg-white rounded-3xl overflow-hidden border border-[#E5E0D8] flex flex-col justify-between group">
-                <div className="relative bg-[#F4F1EA] h-64 overflow-hidden flex items-center justify-center">
-                  {prod.badge && (
-                    <span className="absolute top-3 left-3 z-10 bg-[#B85D36] text-white text-[9px] font-bold px-2 py-1 rounded uppercase">
-                      {prod.badge}
-                    </span>
-                  )}
-                  <button className="absolute top-3 right-3 z-10 w-8 h-8 rounded-full bg-white/80 backdrop-blur-md flex items-center justify-center text-gray-700 hover:text-[#1C382D]">
-                    <Heart size={14} />
-                  </button>
-                  <img src={prod.image} alt={prod.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
-                </div>
-
-                <div className="p-5 flex flex-col justify-between flex-grow">
-                  <div>
-                    <span className="text-[10px] font-bold tracking-widest text-[#B85D36] uppercase mb-1 block">{prod.category}</span>
-                    <h3 className="font-serif text-lg text-[#1C382D] mb-2">{prod.title}</h3>
-                    <div className="flex items-center space-x-1 mb-3">
-                      <div className="flex text-amber-500">
-                        {[...Array(5)].map((_, i) => (<Star key={i} size={12} fill="currentColor" />))}
-                      </div>
-                      <span className="text-[11px] text-gray-400">({prod.reviews})</span>
-                    </div>
-                  </div>
-                  <div className="flex items-center space-x-2 pt-3 border-t border-gray-100">
-                    <span className="text-sm font-bold text-[#1C382D]">₹{prod.price.toLocaleString('en-IN')}</span>
-                    {prod.oldPrice && (
-                      <span className="text-xs text-gray-400 line-through">₹{prod.oldPrice.toLocaleString('en-IN')}</span>
-                    )}
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
         </div>
 
       </div>

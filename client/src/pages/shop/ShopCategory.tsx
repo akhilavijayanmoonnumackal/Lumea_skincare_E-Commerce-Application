@@ -3,6 +3,7 @@ import { Star, ChevronDown, Grid, X, SlidersHorizontal, Heart, ChevronLeft, Chev
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { getProducts, type CategoryObject, type Product } from '../../api/productApi';
 import { useAuth } from "../../context/useAuth";
+import { addToCartApi } from "../../api/cartApi";
 
 export default function ShopCategory() {
   const [searchParams, setSearchParams] = useSearchParams();
@@ -76,21 +77,25 @@ export default function ShopCategory() {
     }
   };
 
-  const handleAddToCart = (productId: string) => {
+  const handleAddToCart = async (productId: string) => {
     if (!isAuthenticated) {
       navigate('/login');
       return;
     }
     setAddingId(productId);
 
-    setTimeout(() => {
+    try {
+      await addToCartApi(productId, 1);
       setAddingId(null);
       setAddedId(productId);
 
       setTimeout(() => {
         setAddedId(null);
       }, 2000);
-    }, 600);
+    } catch (err) {
+      console.error('Failed to add item to cart', err);
+      setAddingId(null);      
+    };
   };
 
   if (loading) {
