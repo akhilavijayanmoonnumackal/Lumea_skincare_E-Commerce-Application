@@ -17,15 +17,34 @@ export class CartController {
     addToCart = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
         try {
             const userId = (req as any).user?.id || (req as any).user?._id;
-            const { productId, quantity } = req.body;
+            const { productId, quantity, variant } = req.body;
 
             if (!productId || !quantity) {
                 res.status(400).json({ success: false, message: "Product ID and quantity are required" });
                 return;
             }
 
-            const cart = await this.cartService.addToCart(userId, productId, Number(quantity));
+            const cart = await this.cartService.addToCart(userId, productId, Number(quantity), variant);
             res.status(200).json({ success: true, message: "Item added to cart", data: cart });
+        } catch (error: any) {
+            res.status(400).json({ success: false, message: error.message });
+        }
+    };
+
+    updateQuantity = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+        try {
+            const userId = (req as any).user?.id || (req as any).user?._id;
+            const productIdParam = req.params.productId;
+            const productId = Array.isArray(productIdParam) ? productIdParam[0] : productIdParam;
+            const { quantity } = req.body;
+
+            if (!productId || quantity === undefined) {
+                res.status(400).json({ success: false, message: "Product ID and quantity are required" });
+                return;
+            }
+
+            const cart = await this.cartService.updateQuantity(userId, productId, Number(quantity));
+            res.status(200).json({ success: true, message: "Cart updated", data: cart });
         } catch (error: any) {
             res.status(400).json({ success: false, message: error.message });
         }

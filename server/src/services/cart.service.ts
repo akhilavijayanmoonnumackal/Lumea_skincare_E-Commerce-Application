@@ -12,18 +12,15 @@ export class CartService {
         if (!cart) {
             cart = new CART({ user: userId, items: [] });
             await cart.save();
+            cart = await this.cartRepository.findByUserId(userId);
         }
-        return cart;
+        return cart!;
     }
 
-    async addToCart(userId: string, productId: string, quantity: number): Promise<ICart> {
+    async addToCart(userId: string, productId: string, quantity: number, variant: string = 'Standard'): Promise<ICart> {
         const product = await this.productRepository.findById(productId);
         if (!product) {
             throw new Error("Product not found");
-        }
-
-        if (product.stockCount < quantity) {
-            throw new Error("Insufficient stock available");
         }
 
         let cart = await this.cartRepository.findByUserId(userId);
@@ -32,24 +29,80 @@ export class CartService {
         }
 
         const items = cart.items || [];
+
         const existingItem = items.find(item => item.product.toString() === productId);
 
+        const targetQuantity = existingItem ? existingItem.quantity + quantity : quantity;
+
+        if (product.stockCount < targetQuantity) {
+            throw new Error("Insufficient stock available");
+        }
+
         if (existingItem) {
-            const newQuantity = existingItem.quantity + quantity;
-            if (product.stockCount < newQuantity) {
-                throw new Error("Cannot add more than available stock");
-            }
-            existingItem.quantity = newQuantity;
+            existingItem.quantity = targetQuantity;
+            if (variant) existingItem.variant = variant;
         } else {
-            items.push({ product: productId as any, quantity });
+            items.push({ product: productId as any, quantity, variant });
         }
 
         cart.items = items;
         return this.cartRepository.save(cart);
     }
 
+    async updateQuantity(userId: string, productId: string, quantity: number): Promise<ICart> {
+        const product = await this.productRepository.findById(productId);
+        if (!product) {
+            throw new Error("Product not found");
+        }
+
+        if (quantity <= 0) {
+            return this.removeFromCart(userId, productId);
+        }
+
+        if (product.stockCount < quantity) {
+            throw new Error("Insufficient stock available");
+        }
+
+        let cart = await this.cartRepository.findByUserId(userId);
+        if (!cart) {
+            throw new Error("Cart not found");
+        }
+
+        const items = cart.items || [];
+        const targetProductId = String(productId);
+
+        const otherItems = items.filter(item => {
+            const prod = item.product as any;
+            const itemProdId = prod && typeof prod === 'object' && prod._id 
+                ? String(prod._id) 
+                : String(prod);
+            return itemProdId !== targetProductId;
+        });
+
+        const matchingItems = items.filter(item => {
+            const prod = item.product as any;
+            const itemProdId = prod && typeof prod === 'object' && prod._id 
+                ? String(prod._id) 
+                : String(prod);
+            return itemProdId === targetProductId;
+        });
+
+        if (matchingItems.length > 0) {
+            const primaryItem = matchingItems[0];
+            if (primaryItem) {
+                primaryItem.quantity = quantity;
+                otherItems.push(primaryItem);
+            }
+        } else {
+            otherItems.push({ product: productId as any, quantity });
+        }
+
+        cart.items = otherItems;
+        return this.cartRepository.save(cart);
+    }
+
     async removeFromCart(userId: string, productId: string): Promise<ICart> {
-        const cart = await this.cartRepository.findByUserId(userId);
+        let cart = await this.cartRepository.findByUserId(userId);
         if (!cart) {
             throw new Error("Cart not found");
         }

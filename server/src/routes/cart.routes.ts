@@ -7,6 +7,7 @@ const controller = new CartController();
 
 router.get('/', verifyAuth, controller.getCart);
 router.post('/', verifyAuth, controller.addToCart);
+router.put('/:productId', verifyAuth, controller.updateQuantity);
 router.delete('/:productId', verifyAuth, controller.removeFromCart);
 
 export default router;

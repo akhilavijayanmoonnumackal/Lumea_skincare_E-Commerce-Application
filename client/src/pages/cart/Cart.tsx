@@ -6,9 +6,7 @@ import {
   Bookmark, 
   Tag, 
   ArrowRight, 
-  Lock, 
-  Star,
-  Heart,
+  Lock,
   Loader2
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
@@ -37,29 +35,25 @@ export default function Cart() {
     fetchCart();
   }, []);
 
-  const updateQuantity = async (itemId: string, currentQty: number, delta: number) => {
+  const updateQuantity = async (productId: string, currentQty: number, delta: number) => {
     const newQty = currentQty + delta;
     if(newQty <= 0) return;
 
     try {
-      const res = await updateCartItemApi(itemId, newQty);
+      const res = await updateCartItemApi(productId, newQty);
       if (res.success && res.data && Array.isArray(res.data.items)) {
         setCartItems(res.data.items);
-      } else {
-        setCartItems(prev => prev.map(item => item._id === itemId ? { ...item, quantity: newQty } : item));
       }
     } catch (err) {
       console.error('Failed to update quantity', err);
     }
   };
 
-  const removeItem = async (itemId: string) => {
+  const removeItem = async (productId: string) => {
     try {
-      const res = await removeFromCartApi(itemId);
+      const res = await removeFromCartApi(productId);
       if (res.success && res.data && Array.isArray(res.data.items)) {
         setCartItems(res.data.items);
-      } else {
-        setCartItems(prev => prev.filter(item => item._id !== itemId));
       }
     } catch (err) {
       console.error('Failed to remove item', err);
@@ -155,14 +149,14 @@ export default function Cart() {
                       <div className="flex items-center space-x-4">
                         <div className="flex items-center border border-[#E5E0D8] rounded-full px-3 py-1.5 bg-[#FDFBF7]">
                           <button 
-                            onClick={() => updateQuantity(item._id, item.quantity, -1)} 
+                            onClick={() => updateQuantity(item.product._id, item.quantity, -1)} 
                             className="text-gray-500 hover:text-[#1C382D]"
                           >
                             <Minus size={12} />
                           </button>
                           <span className="mx-3 text-xs font-bold text-[#1C382D]">{item.quantity}</span>
                           <button 
-                            onClick={() => updateQuantity(item._id, item.quantity, 1)} 
+                            onClick={() => updateQuantity(item.product._id, item.quantity, 1)} 
                             className="text-gray-500 hover:text-[#1C382D]"
                           >
                             <Plus size={12} />
@@ -175,7 +169,7 @@ export default function Cart() {
                         </button>
 
                         <button 
-                          onClick={() => removeItem(item._id)}
+                          onClick={() => removeItem(item.product._id)}
                           className="text-xs text-red-500/80 hover:text-red-600 flex items-center space-x-1 font-light"
                         >
                           <Trash2 size={13} />
