@@ -107,7 +107,17 @@ export class CartService {
             throw new Error("Cart not found");
         }
 
-        cart.items = (cart.items || []).filter(item => item.product.toString() !== productId);
+        const items = cart.items || [];
+        const targetProductId = String(productId);
+
+        cart.items = items.filter(item => {
+            const prod = item.product as any;
+            const itemProdId = prod && typeof prod === 'object' && prod._id
+                ? String(prod._id)
+                : String(prod);
+            return itemProdId !== targetProductId;
+        });
+
         return this.cartRepository.save(cart);
     }
 }
