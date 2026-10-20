@@ -3,12 +3,14 @@ import { Outlet, Link, useNavigate } from 'react-router-dom';
 import { Search, User, Heart, ShoppingBag, Menu, X, Leaf, Star, Mail, ArrowRight, LogOut, ShieldAlert, ChevronDown } from 'lucide-react';
 import { useAuth } from '../context/useAuth.js';
 import { getCategories, type Category } from '../api/categoryApi';
+import { getCart } from '../api/cartApi.js';
 
 function MainLayout() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [accountDropdownOpen, setAccountDropdownOpen] = useState(false);
   const [shopDropdownOpen, setShopDropdownOpen] = useState(false);
   const [categories, setCategories] = useState<Category[]>([]);
+  const [ cartItemCount, setCartItemCount] = useState<number>(0);
   
   const { user, isAuthenticated, logout } = useAuth();
   const navigate = useNavigate();
@@ -27,9 +29,31 @@ function MainLayout() {
     fetchCats();
   }, []);
 
+  // Fetch cart count on mount and listen for updates
+  useEffect(() => {
+    const fetchCartBadge = async () => {
+      try {
+        const res = await getCart();
+        if(res.success && res.data && Array.isArray(res.data.items)) {
+          const totalCount = res.data.items.reduce((acc, item) => acc + item.quantity, 0);
+          setCartItemCount(totalCount);
+        }
+      } catch (err) {
+        // Silent catch if user is logged out or cart is empty
+      }
+    };
+    fetchCartBadge();
+
+    window.addEventListener('cartUpdated', fetchCartBadge);
+    return () => {
+      window.removeEventListener('cartUpdated', fetchCartBadge);
+    };
+  }, []);
+
   const handleLogout = () => {
     logout();
     setAccountDropdownOpen(false);
+    setCartItemCount(0);
     navigate('/login');
   };
 
@@ -206,9 +230,11 @@ function MainLayout() {
             {/* Cart Link */}
             <Link to="/cart" aria-label="Cart" className="p-1 relative hover:opacity-75 transition-opacity">
               <ShoppingBag size={20} strokeWidth={1.75} />
+              {cartItemCount > 0 && (
               <span className="absolute -top-1 -right-1 bg-[#1C382D] text-white text-[10px] w-4 h-4 rounded-full flex items-center justify-center font-bold">
-                0
+                {cartItemCount}
               </span>
+              )}
             </Link>
           </div>
         </div>

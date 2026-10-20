@@ -43,6 +43,7 @@ export default function Cart() {
       const res = await updateCartItemApi(productId, newQty);
       if (res.success && res.data && Array.isArray(res.data.items)) {
         setCartItems(res.data.items);
+        window.dispatchEvent(new Event('cartUpdated'));
       }
     } catch (err) {
       console.error('Failed to update quantity', err);
@@ -54,6 +55,7 @@ export default function Cart() {
       const res = await removeFromCartApi(productId);
       if (res.success && res.data && Array.isArray(res.data.items)) {
         setCartItems(res.data.items);
+        window.dispatchEvent(new Event('cartUpdated'));
       }
     } catch (err) {
       console.error('Failed to remove item', err);

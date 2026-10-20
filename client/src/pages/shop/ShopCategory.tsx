@@ -88,6 +88,7 @@ export default function ShopCategory() {
       await addToCartApi(productId, 1);
       setAddingId(null);
       setAddedId(productId);
+      window.dispatchEvent(new Event('cartUpdated'));
 
       setTimeout(() => {
         setAddedId(null);
