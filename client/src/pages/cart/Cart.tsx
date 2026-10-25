@@ -9,10 +9,12 @@ import {
   Lock,
   Loader2
 } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { getCart, updateCartItemApi, removeFromCartApi, type CartItemBackend } from '../../api/cartApi';
 
 export default function Cart() {
+  const navigate = useNavigate();
+
   const [cartItems, setCartItems] = useState<CartItemBackend[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
 
@@ -60,6 +62,10 @@ export default function Cart() {
     } catch (err) {
       console.error('Failed to remove item', err);
     }
+  };
+
+  const handleProceedToCheckout = () => {
+    navigate('/checkout');
   };
 
   const totalItemsCount = cartItems.reduce((acc, item) => acc + item.quantity, 0);
@@ -261,8 +267,11 @@ export default function Cart() {
             </div>
 
             {/* Checkout Button */}
-            <button className="w-full bg-[#1C382D] hover:bg-[#152a22] text-white py-4 rounded-full text-xs font-bold uppercase tracking-wider transition-colors shadow-md flex items-center justify-center space-x-2 mb-4">
-              <span>Checkout</span>
+            <button 
+              onClick={handleProceedToCheckout}
+              disabled={cartItems.length === 0}
+              className="w-full bg-[#1C382D] hover:bg-[#152a22] text-white py-4 rounded-full text-xs font-bold uppercase tracking-wider transition-colors shadow-md flex items-center justify-center space-x-2 mb-4">
+              <span>Proceed to Checkout</span>
               <ArrowRight size={15} />
             </button>
 

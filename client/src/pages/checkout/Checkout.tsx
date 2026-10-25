@@ -1,57 +1,227 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { 
   Check, 
   Lock,
   ShieldCheck,
+  Loader2
 } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
+import { useAuth } from '../../context/useAuth';
+import { getCart } from '../../api/cartApi';
+import { createOrder, verifyPayment } from '../../api/orderApi';
 
-// Local asset imports
-import serumsImg from '../../assets/images/serums&oils.avif';
-import cleanserImg from '../../assets/images/cleansers.avif';
-import suncareImg from '../../assets/images/suncare.avif';
+interface RazorpayInstance {
+  open: () => void;
+}
+
+interface RazorpayConstructor {
+  new (options: Record<string, unknown>): RazorpayInstance;
+}
+
+declare global {
+  interface Window {
+    Razorpay: RazorpayConstructor;
+  }
+}
+
+export interface CartItem {
+  _id?: string;
+  product: {
+    _id: string;
+    name: string;
+    price: number;
+    imageUrl?: string;
+  };
+  quantity: number;
+}
 
 export default function Checkout() {
+  const navigate = useNavigate();
+  const { user } = useAuth();
+
+  const [loading, setLoading] = useState(true);
+  const [submitting, setSubmitting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const [cartItems, setCartItems] = useState<CartItem[]>([]);
   const [deliveryMethod, setDeliveryMethod] = useState<'express' | 'standard'>('express');
   const [paymentMethod, setPaymentMethod] = useState<'card' | 'upi' | 'paypal' | 'cod'>('card');
   const [saveAddress, setSaveAddress] = useState(true);
   const [emailOffers, setEmailOffers] = useState(true);
 
-  const cartSummaryItems = [
-    {
-      id: 1,
-      title: "Vitamin C Glow Serum",
-      variant: "30 ml",
-      price: 2950,
-      quantity: 1,
-      image: serumsImg
-    },
-    {
-      id: 2,
-      title: "Gentle Milk Cleanser",
-      variant: "30 ml",
-      price: 1850,
-      quantity: 2,
-      image: cleanserImg
-    },
-    {
-      id: 3,
-      title: "Mineral Daily SPF 50",
-      variant: "50 ml",
-      price: 2200,
-      quantity: 1,
-      image: suncareImg
-    }
-  ];
+  const [formData, setFormData] = useState({
+    email: user?.email || '',
+    firstName: user?. name ? user.name.split(' ')[0] : '',
+    lastName: user?.name ? user.name.split(' ').slice(1).join(' ') : '',
+    address: '',
+    apartment: '',
+    city: '',
+    state: '',
+    postalCode: '',
+    country: 'India',
+    phone: ''
+  });
 
-  const subtotal = 10150;
-  const discount = 600;
+  // useEffect(() => {
+  //   if(user) {
+  //     setFormData(prev => ({
+  //       ...prev,
+  //       email: user.email || prev.email,
+  //       firstName: user.name ? user.name.split(' ')[0] : prev.firstName,
+  //       lastName: user.name ? user.name.split(' ').slice(1).join(' ') : prev.lastName,
+  //     }));
+  //   }
+  // }, [user]);
+
+  useEffect(() => {
+    const fetchCheckoutCart = async () => {
+      try {
+        const res = await getCart();
+        if(res.success && res.data && Array.isArray(res.data.items)) {
+          setCartItems(res.data.items);
+        }
+      } catch (err) {
+        console.error('Failed to load cart for checkout:', err);
+        setError('Failed to load your shopping bag.');
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchCheckoutCart();
+  }, []);
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({ ...prev, [name]: value }));
+  };
+
+  const subtotal = cartItems.reduce((acc, item) => {
+    const price = item.product?.price || 0;
+    return acc + (price * item.quantity);
+  }, 0);
+
+  const discount = subtotal > 5000 ? 600 : 0;
   const deliveryCost = deliveryMethod === 'standard' ? 350 : 0;
   const gst = Math.round((subtotal - discount) * 0.18);
-  const finalTotal = subtotal - discount + deliveryCost + gst + (paymentMethod === 'cod' ? 150 : 0);
+  const codFee = paymentMethod === 'cod' ? 150 : 0;
+  const finalTotal = subtotal - discount + deliveryCost + gst + codFee;
+
+  const handlePlaceOrder = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (cartItems.length === 0) {
+      setError('Your bag is empty.');
+      return;
+    }
+
+    setSubmitting(true);
+    setError(null);
+
+    try {
+      const payload = {
+        orderItems: cartItems.map(item => ({
+          product: item.product._id,
+          quantity: item.quantity,
+          price: item.product.price
+        })),
+        shippingAddress: {
+          address: `${formData.address}, ${formData.apartment}`.trim(),
+          city: formData.city,
+          postalCode: formData.postalCode,
+          country: formData.country,
+          phone: formData.phone
+        },
+        paymentMethod: paymentMethod === 'cod' ? 'COD' : 'RAZORPAY'
+      };
+
+      const res = await createOrder(payload);
+
+      if (!res.success) {
+        setError(res.message || 'Failed to place order');
+        setSubmitting(false);
+        return;
+      }
+
+      const responseData = (res.data as unknown) as {
+        order: { _id: string };
+        razorpayOrderId?: string;
+        amount?: number;
+        currency?: string;
+        keyId?: string;
+      };
+
+      // If COD, finish immediately
+      if (paymentMethod === 'cod') {
+        window.dispatchEvent(new Event('cartUpdated'));
+        navigate(`/account/orders/${responseData.order._id}`);
+        return;
+      }
+
+      // If Online Payment (Razorpay), open modal
+      const { razorpayOrderId, amount, currency, keyId, order } = responseData;
+
+      const options = {
+        key: keyId,
+        amount: amount,
+        currency: currency,
+        name: 'Luméa Skincare',
+        description: 'Order Payment',
+        order_id: razorpayOrderId,
+        handler: async function (response: {
+          razorpay_order_id: string;
+          razorpay_payment_id: string;
+          razorpay_signature: string;
+        }) {
+          try {
+            const verificationRes = await verifyPayment({
+              orderId: order._id,
+              razorpayOrderId: response.razorpay_order_id,
+              razorpayPaymentId: response.razorpay_payment_id,
+              razorpaySignature: response.razorpay_signature
+            });
+
+            if (verificationRes.success) {
+              window.dispatchEvent(new Event('cartUpdated'));
+              navigate(`/account/orders/${order._id}`);
+            } else {
+              setError('Payment verification failed.');
+            }
+          } catch (verifyErr: unknown) {
+            console.error('Verification error:', verifyErr);
+            setError('Payment verification failed on server.');
+          }
+        },
+        prefill: {
+          name: `${formData.firstName} ${formData.lastName}`,
+          email: formData.email,
+          contact: formData.phone
+        },
+        theme: {
+          color: '#1C382D'
+        }
+      };
+
+      const rzp = new window.Razorpay(options);
+      rzp.open();
+
+    } catch (err: unknown) {
+      console.error('Checkout error:', err);
+      const errorObj = err as { response?: { data?: { message?: string } } };
+      setError(errorObj.response?.data?.message || 'Something went wrong during checkout.');
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-[#FDFBF7]">
+        <Loader2 className="w-8 h-8 animate-spin text-[#1C382D]" />
+      </div>
+    );
+  }
 
   return (
-    <div className="w-full bg-[#FDFBF7] min-h-screen py-8">
+    <div key={user?.email || 'guest'} className="w-full bg-[#FDFBF7] min-h-screen py-8">
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
         
         {/* Step Progress Bar */}
@@ -92,8 +262,14 @@ export default function Checkout() {
           </div>
         </div>
 
+        {error && (
+          <div className="mb-6 p-4 rounded-xl bg-red-50 border border-red-200 text-red-700 text-xs font-medium text-center">
+            {error}
+          </div>
+        )}
+
         {/* Main Grid: Left Form, Right Order Summary */}
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-start">
+        <form onSubmit={handlePlaceOrder} className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-start">
           
           {/* Left Form Area */}
           <div className="lg:col-span-7 space-y-10">
@@ -103,7 +279,7 @@ export default function Checkout() {
               <div className="flex items-center justify-between mb-6">
                 <h2 className="font-serif text-2xl text-[#1C382D]">Contact</h2>
                 <span className="text-xs text-gray-500">
-                  Already have an account? <a href="#" className="text-[#1C382D] font-bold underline">Log in</a>
+                  Already have an account? <Link to="/login" className="text-[#1C382D] font-bold underline">Log in</Link>
                 </span>
               </div>
 
@@ -111,8 +287,11 @@ export default function Checkout() {
                 <div>
                   <label className="block text-xs font-bold uppercase tracking-wider text-[#1C382D] mb-2">Email address</label>
                   <input 
-                    type="email" 
-                    defaultValue="akhila@email.com"
+                    type="email"
+                    name='email'
+                    value={formData.email}
+                    onChange={handleInputChange}
+                    required
                     className="w-full bg-[#FDFBF7] border border-[#E5E0D8] rounded-xl px-4 py-3 text-xs text-[#1C382D] focus:outline-none focus:border-[#1C382D]"
                   />
                 </div>
@@ -139,16 +318,22 @@ export default function Checkout() {
                     <label className="block text-xs font-bold uppercase tracking-wider text-[#1C382D] mb-2">First name</label>
                     <input 
                       type="text" 
-                      defaultValue="Akhila"
-                      className="w-full bg-[#FDFBF7] border border-[#E5E0D8] rounded-xl px-4 py-3 text-xs text-[#1C382D] focus:outline-none focus:border-[#1C382D]"
+                      name='firstName'
+                      value={formData.firstName}
+                      onChange={handleInputChange}
+                      required
+                      className="w-full bg-[#FDFBF7] border border-[#E5E0D8] rounded-xl px-4 py-3 text-xs text-[#cbcdcc] focus:outline-none focus:border-[#1C382D]"
                     />
                   </div>
                   <div>
                     <label className="block text-xs font-bold uppercase tracking-wider text-[#1C382D] mb-2">Last name</label>
                     <input 
                       type="text" 
-                      defaultValue="Vijayan"
-                      className="w-full bg-[#FDFBF7] border border-[#E5E0D8] rounded-xl px-4 py-3 text-xs text-[#1C382D] focus:outline-none focus:border-[#1C382D]"
+                      name='lastName'
+                      value={formData.lastName}
+                      onChange={handleInputChange}
+                      required
+                      className="w-full bg-[#FDFBF7] border border-[#E5E0D8] rounded-xl px-4 py-3 text-xs text-[#cbcdcc] focus:outline-none focus:border-[#1C382D]"
                     />
                   </div>
                 </div>
@@ -157,8 +342,12 @@ export default function Checkout() {
                   <label className="block text-xs font-bold uppercase tracking-wider text-[#1C382D] mb-2">Address</label>
                   <input 
                     type="text" 
-                    defaultValue="42 Marine Drive"
-                    className="w-full bg-[#FDFBF7] border border-[#E5E0D8] rounded-xl px-4 py-3 text-xs text-[#1C382D] focus:outline-none focus:border-[#1C382D]"
+                    name='address'
+                    value={formData.address}
+                    onChange={handleInputChange}
+                    required
+                    placeholder="Street Address"
+                    className="w-full bg-[#FDFBF7] border border-[#E5E0D8] rounded-xl px-4 py-3 text-xs text-[#cbcdcc] focus:outline-none focus:border-[#1C382D]"
                   />
                 </div>
 
@@ -166,8 +355,10 @@ export default function Checkout() {
                   <label className="block text-xs font-bold uppercase tracking-wider text-[#1C382D] mb-2">Apartment, suite (optional)</label>
                   <input 
                     type="text" 
-                    defaultValue="Flat 7B"
-                    className="w-full bg-[#FDFBF7] border border-[#E5E0D8] rounded-xl px-4 py-3 text-xs text-[#1C382D] focus:outline-none focus:border-[#1C382D]"
+                    name='apartment'
+                    value={formData.apartment}
+                    onChange={handleInputChange}
+                    className="w-full bg-[#FDFBF7] border border-[#E5E0D8] rounded-xl px-4 py-3 text-xs text-[#cbcdcc] focus:outline-none focus:border-[#1C382D]"
                   />
                 </div>
 
@@ -176,31 +367,58 @@ export default function Checkout() {
                     <label className="block text-xs font-bold uppercase tracking-wider text-[#1C382D] mb-2">City</label>
                     <input 
                       type="text" 
-                      defaultValue="Kochi"
-                      className="w-full bg-[#FDFBF7] border border-[#E5E0D8] rounded-xl px-4 py-3 text-xs text-[#1C382D] focus:outline-none focus:border-[#1C382D]"
+                      name='city'
+                      value={formData.city}
+                      onChange={handleInputChange}
+                      required
+                      className="w-full bg-[#FDFBF7] border border-[#E5E0D8] rounded-xl px-4 py-3 text-xs text-[#cbcdcc] focus:outline-none focus:border-[#1C382D]"
                     />
                   </div>
                   <div>
                     <label className="block text-xs font-bold uppercase tracking-wider text-[#1C382D] mb-2">State</label>
                     <input 
                       type="text" 
-                      defaultValue="Kerala"
-                      className="w-full bg-[#FDFBF7] border border-[#E5E0D8] rounded-xl px-4 py-3 text-xs text-[#1C382D] focus:outline-none focus:border-[#1C382D]"
+                      name='state'
+                      value={formData.state}
+                      onChange={handleInputChange}
+                      required
+                      className="w-full bg-[#FDFBF7] border border-[#E5E0D8] rounded-xl px-4 py-3 text-xs text-[#cbcdcc] focus:outline-none focus:border-[#1C382D]"
                     />
                   </div>
                   <div>
                     <label className="block text-xs font-bold uppercase tracking-wider text-[#1C382D] mb-2">PIN code</label>
                     <input 
                       type="text" 
-                      defaultValue="682031"
-                      className="w-full bg-[#FDFBF7] border border-[#E5E0D8] rounded-xl px-4 py-3 text-xs text-[#1C382D] focus:outline-none focus:border-[#1C382D]"
+                      name='postalCode'
+                      value={formData.postalCode}
+                      onChange={handleInputChange}
+                      required
+                      className="w-full bg-[#FDFBF7] border border-[#E5E0D8] rounded-xl px-4 py-3 text-xs text-[#cbcdcc] focus:outline-none focus:border-[#1C382D]"
                     />
                   </div>
                 </div>
 
                 <div>
+                  <label className="block text-xs font-bold uppercase tracking-wider text-[#1C382D] mb-2">Phone Number</label>
+                  <input 
+                    type="tel" 
+                    name='phone'
+                    value={formData.phone}
+                    onChange={handleInputChange}
+                    required
+                    placeholder="+91 98765 43210"
+                    className="w-full bg-[#FDFBF7] border border-[#E5E0D8] rounded-xl px-4 py-3 text-xs text-[#1C382D] focus:outline-none focus:border-[#1C382D]"
+                  />
+                </div>
+
+                <div>
                   <label className="block text-xs font-bold uppercase tracking-wider text-[#1C382D] mb-2">Country / region</label>
-                  <select className="w-full bg-[#FDFBF7] border border-[#E5E0D8] rounded-xl px-4 py-3 text-xs text-[#1C382D] focus:outline-none">
+                  <select 
+                    name='country'
+                    value={formData.country}
+                    onChange={handleInputChange}
+                    className="w-full bg-[#FDFBF7] border border-[#E5E0D8] rounded-xl px-4 py-3 text-xs text-[#1C382D] focus:outline-none"
+                  >
                     <option>India</option>
                     <option>United Arab Emirates</option>
                   </select>
@@ -266,66 +484,22 @@ export default function Checkout() {
               <h2 className="font-serif text-2xl text-[#1C382D] mb-6">Payment</h2>
 
               <div className="space-y-4">
-                
-                {/* Credit / Debit Card Option */}
                 <div 
                   onClick={() => setPaymentMethod('card')}
                   className={`p-5 rounded-2xl border cursor-pointer transition-all ${
                     paymentMethod === 'card' ? 'border-[#1C382D] bg-[#1C382D]/5 ring-1 ring-[#1C382D]' : 'border-[#E5E0D8]'
                   }`}
                 >
-                  <div className="flex items-center justify-between mb-4">
+                  <div className="flex items-center justify-between">
                     <div className="flex items-center space-x-3">
                       <div className={`w-4 h-4 rounded-full border flex items-center justify-center ${paymentMethod === 'card' ? 'border-[#1C382D]' : 'border-gray-300'}`}>
                         {paymentMethod === 'card' && <div className="w-2 h-2 rounded-full bg-[#1C382D]" />}
                       </div>
-                      <span className="text-xs font-bold text-[#1C382D]">Credit / debit card</span>
-                    </div>
-                    <div className="flex space-x-1 text-[10px] font-bold text-gray-500">
-                      <span className="px-1.5 py-0.5 bg-white border rounded">VISA</span>
-                      <span className="px-1.5 py-0.5 bg-white border rounded">MC</span>
-                      <span className="px-1.5 py-0.5 bg-white border rounded">AMEX</span>
-                      <span className="px-1.5 py-0.5 bg-white border rounded">RuPay</span>
+                      <span className="text-xs font-bold text-[#1C382D]">Credit / debit card (Razorpay)</span>
                     </div>
                   </div>
-
-                  {paymentMethod === 'card' && (
-                    <div className="space-y-3 pt-3 border-t border-[#E5E0D8]/60">
-                      <div>
-                        <input 
-                          type="text" 
-                          placeholder="Card number"
-                          defaultValue="4111 2222 3333 4444"
-                          className="w-full bg-white border border-[#E5E0D8] rounded-xl px-4 py-2.5 text-xs text-[#1C382D] focus:outline-none"
-                        />
-                      </div>
-                      <div className="grid grid-cols-2 gap-3">
-                        <input 
-                          type="text" 
-                          placeholder="MM / YY"
-                          defaultValue="08 / 28"
-                          className="w-full bg-white border border-[#E5E0D8] rounded-xl px-4 py-2.5 text-xs text-[#1C382D] focus:outline-none"
-                        />
-                        <input 
-                          type="password" 
-                          placeholder="CVV"
-                          defaultValue="382"
-                          className="w-full bg-white border border-[#E5E0D8] rounded-xl px-4 py-2.5 text-xs text-[#1C382D] focus:outline-none"
-                        />
-                      </div>
-                      <div>
-                        <input 
-                          type="text" 
-                          placeholder="Name on card"
-                          defaultValue="Akhila Vijayan"
-                          className="w-full bg-white border border-[#E5E0D8] rounded-xl px-4 py-2.5 text-xs text-[#1C382D] focus:outline-none"
-                        />
-                      </div>
-                    </div>
-                  )}
                 </div>
 
-                {/* UPI / Netbanking */}
                 <div 
                   onClick={() => setPaymentMethod('upi')}
                   className={`p-4 rounded-2xl border cursor-pointer flex items-center justify-between transition-all ${
@@ -336,31 +510,10 @@ export default function Checkout() {
                     <div className={`w-4 h-4 rounded-full border flex items-center justify-center ${paymentMethod === 'upi' ? 'border-[#1C382D]' : 'border-gray-300'}`}>
                       {paymentMethod === 'upi' && <div className="w-2 h-2 rounded-full bg-[#1C382D]" />}
                     </div>
-                    <span className="text-xs font-bold text-[#1C382D]">UPI / Netbanking</span>
-                  </div>
-                  <div className="flex space-x-2 text-[10px] font-bold text-gray-500">
-                    <span className="px-2 py-0.5 bg-white border rounded">UPI</span>
-                    <span className="px-2 py-0.5 bg-white border rounded">GPay</span>
+                    <span className="text-xs font-bold text-[#1C382D]">UPI / Netbanking (Razorpay)</span>
                   </div>
                 </div>
 
-                {/* PayPal */}
-                <div 
-                  onClick={() => setPaymentMethod('paypal')}
-                  className={`p-4 rounded-2xl border cursor-pointer flex items-center justify-between transition-all ${
-                    paymentMethod === 'paypal' ? 'border-[#1C382D] bg-[#1C382D]/5 ring-1 ring-[#1C382D]' : 'border-[#E5E0D8]'
-                  }`}
-                >
-                  <div className="flex items-center space-x-3">
-                    <div className={`w-4 h-4 rounded-full border flex items-center justify-center ${paymentMethod === 'paypal' ? 'border-[#1C382D]' : 'border-gray-300'}`}>
-                      {paymentMethod === 'paypal' && <div className="w-2 h-2 rounded-full bg-[#1C382D]" />}
-                    </div>
-                    <span className="text-xs font-bold text-[#1C382D]">PayPal</span>
-                  </div>
-                  <span className="text-[10px] font-bold px-2 py-0.5 bg-white border rounded text-gray-500">PayPal</span>
-                </div>
-
-                {/* Cash on delivery */}
                 <div 
                   onClick={() => setPaymentMethod('cod')}
                   className={`p-4 rounded-2xl border cursor-pointer flex items-center justify-between transition-all ${
@@ -375,14 +528,24 @@ export default function Checkout() {
                   </div>
                   <span className="text-xs text-gray-400">+ ₹150 handling</span>
                 </div>
-
               </div>
             </div>
 
             {/* Place Order Button */}
             <div>
-              <button className="w-full bg-[#1C382D] hover:bg-[#152a22] text-white py-4 rounded-full text-xs font-bold uppercase tracking-wider transition-colors shadow-lg flex items-center justify-center space-x-2 mb-4">
-                <span>Place order — ₹{finalTotal.toLocaleString('en-IN')}</span>
+              <button
+                type='submit'
+                disabled={submitting || cartItems.length === 0}
+                className="w-full bg-[#1C382D] hover:bg-[#152a22] text-white py-4 rounded-full text-xs font-bold uppercase tracking-wider transition-colors shadow-lg flex items-center justify-center space-x-2 mb-4"
+              >
+                {submitting ? (
+                  <>
+                    <Loader2 className='w-4 h-4 animate-spin' />
+                    <span>Processing...</span>
+                  </>
+                  ) : (
+                    <span>Place order — ₹{finalTotal.toLocaleString('en-IN')}</span>
+                  )}
               </button>
 
               <div className="flex items-center justify-between px-2">
@@ -403,24 +566,28 @@ export default function Checkout() {
             <h3 className="font-serif text-2xl text-[#1C382D] mb-6 pb-4 border-b border-[#E5E0D8]">Order summary</h3>
 
             {/* Items list preview */}
-            <div className="space-y-4 mb-6 pb-6 border-b border-[#E5E0D8]">
-              {cartSummaryItems.map((item) => (
-                <div key={item.id} className="flex items-center justify-between">
-                  <div className="flex items-center space-x-3">
-                    <div className="relative w-12 h-12 rounded-xl bg-[#F4F1EA] overflow-hidden flex items-center justify-center flex-shrink-0">
-                      <span className="absolute -top-1 -right-1 bg-[#1C382D] text-white text-[9px] w-4 h-4 rounded-full flex items-center justify-center font-bold">
-                        {item.quantity}
-                      </span>
-                      <img src={item.image} alt={item.title} className="w-full h-full object-cover" />
+            <div className="space-y-4 mb-6 pb-6 border-b border-[#E5E0D8] max-h-72 overflow-y-auto">
+              {cartItems.length === 0 ? (
+                <p className="text-xs text-gray-400">Your bag is empty</p>
+                ) : (
+                  cartItems.map((item, idx) => (
+                    <div key={item._id || idx} className="flex items-center justify-between">
+                      <div className="flex items-center space-x-3">
+                        <div className="relative w-12 h-12 rounded-xl bg-[#F4F1EA] overflow-hidden flex items-center justify-center flex-shrink-0">
+                          <span className="absolute -top-1 -right-1 bg-[#1C382D] text-white text-[9px] w-4 h-4 rounded-full flex items-center justify-center font-bold">
+                            {item.quantity}
+                          </span>
+                          <img src={item.product?.imageUrl} alt={item.product?.name} className="w-full h-full object-cover" />
+                        </div>
+                        <div>
+                          <h4 className="text-xs font-bold text-[#1C382D]">{item.product?.name}</h4>
+                          <span className="text-[10px] text-gray-400">Qty: {item.quantity}</span>
+                        </div>
+                      </div>
+                      <span className="text-xs font-bold text-[#1C382D]">₹{((item.product?.price || 0) * item.quantity).toLocaleString('en-IN')}</span>
                     </div>
-                    <div>
-                      <h4 className="text-xs font-bold text-[#1C382D]">{item.title}</h4>
-                      <span className="text-[10px] text-gray-400">{item.variant}</span>
-                    </div>
-                  </div>
-                  <span className="text-xs font-bold text-[#1C382D]">₹{(item.price * item.quantity).toLocaleString('en-IN')}</span>
-                </div>
-              ))}
+                  ))
+                )}
             </div>
 
             {/* Promo Code Input */}
@@ -474,10 +641,10 @@ export default function Checkout() {
             </div>
 
           </div>
+        </form>
 
         </div>
 
       </div>
-    </div>
   );
 }

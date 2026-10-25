@@ -1,10 +1,21 @@
 import { OrderRepository } from "../repositories/order.repository";
 import { ProductRepository } from "../repositories/product.repository";
 import { IOrder } from "../models/order/order-model";
+import { RazorpayService } from "./razorpay.service";
+import { config } from "../config";
+
+export interface OrderCreationResult {
+    order: IOrder;
+    razorpayOrderId?: string;
+    amount?: number;
+    currency?: string;
+    keyId?: string;
+}
 
 export class CustomerOrderService {
     private orderRepository = new OrderRepository();
     private productRepository = new ProductRepository();
+    private razorpayService = new RazorpayService();
 
     async createOrder(userId: string, orderData: {
         orderItems: Array<{ product: string; quantity: number; price: number }>;
@@ -16,7 +27,7 @@ export class CustomerOrderService {
             phone: string;
         };
         paymentMethod: string;
-    }): Promise<IOrder> {
+    }): Promise<OrderCreationResult> {
         if (!orderData.orderItems || orderData.orderItems.length === 0) {
             throw new Error("No order items provided");
         }
@@ -57,7 +68,29 @@ export class CustomerOrderService {
             paymentStatus: 'Pending'
         });
 
-        return newOrder;
+        if(orderData.paymentMethod && orderData.paymentMethod !== 'COD') {
+            const razorpayOrder = await this.razorpayService.createRazorpayOrder(
+                calculatedTotalPrice,
+                newOrder._id.toString()
+            );
+
+            return {
+                order: newOrder,
+                razorpayOrderId: razorpayOrder.id,
+                amount: Number(razorpayOrder.amount),
+                currency: razorpayOrder.currency,
+                keyId: config.keyId
+            };
+        }
+
+        return { order: newOrder };
+    }
+
+    async markOrderAsPaid(orderId: string, paymentId: string): Promise<IOrder | null> {
+        return this.orderRepository.updateStatus(orderId, {
+            paymentStatus: 'Paid',
+            orderStatus: 'Processing'
+        });
     }
 
     async getCustomerOrders(userId: string): Promise<IOrder[]> {

@@ -1,8 +1,10 @@
 import { Request, Response, NextFunction } from "express";
 import { CustomerOrderService } from "../services/customer-order.service";
+import { RazorpayService } from "../services/razorpay.service";
 
 export class CustomerOrderController {
     private customerOrderService = new CustomerOrderService();
+    private razorpayService = new RazorpayService();
 
     createOrder = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
         try {
@@ -24,6 +26,29 @@ export class CustomerOrderController {
                 success: true,
                 message: 'Order placed successfully',
                 data: order
+            });
+        } catch (error: any) {
+            res.status(400).json({ success: false, message: error.message });
+        }
+    };
+
+    verifyPayment = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+        try {
+            const { orderId, razorpayOrderId, razorpayPaymentId, razorpaySignature } = req.body;
+
+            const isValid = this.razorpayService.verifySignature(razorpayOrderId, razorpayPaymentId, razorpaySignature);
+
+            if(!isValid) {
+                res.status(400).json({ success: false, message: 'Invalid payment signature' });
+                return;
+            }
+
+            const updatedOrder = await this.customerOrderService.markOrderAsPaid(orderId, razorpayPaymentId);
+
+            res.status(200).json({
+                success: true,
+                message: 'Payment verified and order confirmed successfully',
+                data: updatedOrder
             });
         } catch (error: any) {
             res.status(400).json({ success: false, message: error.message });
