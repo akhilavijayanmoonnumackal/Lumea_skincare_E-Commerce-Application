@@ -22,7 +22,22 @@ export class AuthController {
         try {
             const { email, password } = req.body;
             const result = await this.authService.login(email, password);
-            res.status(200).json({ success: true, message: 'Login successful', data: result });
+
+            const adminUser = result.admin;
+            const token = result.token;
+
+            res.status(200).json({ 
+                success: true, 
+                message: 'Login successful', 
+                token: token,
+                data: {
+                    _id: adminUser.id,
+                    name: adminUser.name,
+                    email: adminUser.email,
+                    role: adminUser.type,
+                    adminUserType: adminUser.type 
+                } 
+            });
         } catch (error) {
             next(error);
         }

@@ -1,12 +1,13 @@
 import { Navigate, Outlet } from "react-router-dom";
-import { useAuth } from '../context/useAuth';
+
 
 export const ProtectedRoute = () => {
-    const { isAuthenticated, loading } = useAuth();
+    const token = localStorage.getItem('token');
+    const userInfoStr = localStorage.getItem('userInfo');
 
-    if(loading) {
-        return <div className="min-h-screen flex items-center justify-center bg-[#FDFBF7]">Loading Luméa...</div>;
+    if(!token || !userInfoStr) {
+        const isAdminRoute = window.location.pathname.startsWith('/admin');
+        return <Navigate to={isAdminRoute ? "/admin/login" : "/login"} replace />
     }
-
-    return isAuthenticated ? <Outlet /> : <Navigate to='/login' replace/>;
+    return <Outlet />
 };

@@ -1,6 +1,7 @@
 import { useState } from 'react';
-import { Lock, Mail, ArrowRight, ShieldCheck, AlertCircle } from 'lucide-react';
+import { Lock, Mail, ArrowRight, ShieldCheck, AlertCircle, Loader2 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { adminLogin } from '../../api/adminAuthApi';
 
 export default function AdminLoginPage() {
   const navigate = useNavigate();
@@ -9,13 +10,7 @@ export default function AdminLoginPage() {
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
 
-  // const fillDemoCredentials = () => {
-  //   setEmail('admin@lumeaskin.com');
-  //   setPassword('admin123');
-  //   setError('');
-  // };
-
-  const handleLogin = (e: React.FormEvent) => {
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
 
@@ -26,16 +21,35 @@ export default function AdminLoginPage() {
 
     setIsLoading(true);
 
-    // Simulate authentication check
-    setTimeout(() => {
-      setIsLoading(false);
-      if (email === 'admin@lumeaskin.com' && password === 'admin123') {
+    try {
+      const res = await adminLogin({ email, password });
+
+      if (res.success) {
+        const user = 'user' in res.data && res.data.user ? res.data.user : res.data;
+        const userRole = user.adminUserType || user.role;
+
+        if (userRole !== 'admin' && userRole !== 'superadmin') {
+          setError('Access denied. Administrator privilages required.');
+          setIsLoading(false);
+          return;
+        }
+
+        if (res.token) {
+          localStorage.setItem('token', res.token);
+        }
+        localStorage.setItem('userInfo', JSON.stringify(user));
         navigate('/admin/dashboard');
       } else {
-        setError('Invalid admin credentials. Use the demo button below for quick access.');
+        setError(res.message || 'Invalid admin credentials.');
       }
-    }, 1000);
-  };
+    } catch (err: unknown) {
+      console.error('Admin login error:', err);
+      const errorObj = err as { response?: { data?: { message?: string } } };
+      setError(errorObj.response?.data?.message || 'Invalid email or password.');
+    } finally {
+      setIsLoading(false);
+    }
+  }
 
   return (
     <div className="min-h-screen bg-[#F7F5F0] flex items-center justify-center p-4">
@@ -68,7 +82,6 @@ export default function AdminLoginPage() {
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                placeholder="admin@lumeaskin.com"
                 className="w-full bg-[#F7F5F0] border border-[#E5E0D8] rounded-2xl pl-10 pr-4 py-3 text-xs text-[#1C382D] focus:outline-none focus:border-[#1C382D]"
               />
             </div>
@@ -103,23 +116,19 @@ export default function AdminLoginPage() {
             disabled={isLoading}
             className="w-full bg-[#1C382D] hover:bg-[#152a22] text-white py-3.5 rounded-full text-xs font-bold uppercase tracking-wider flex items-center justify-center space-x-2 transition-colors shadow-sm disabled:opacity-70 mt-2"
           >
-            <span>{isLoading ? 'Verifying Credentials...' : 'Sign In to Dashboard'}</span>
-            {!isLoading && <ArrowRight size={15} />}
+            {isLoading ? (
+              <>
+                <Loader2 className='w-4 h-4 animate-spin' />
+                <span>Verifying Credentials....</span>
+              </>
+            ) : (
+              <>
+                <span>Sign In to Dashboard</span>
+                <ArrowRight size={15} />
+              </>
+            )}
           </button>
         </form>
-
-        {/* Quick Demo Credentials Helper */}
-        {/* <div className="bg-[#F7F5F0] border border-[#E5E0D8] p-4 rounded-2xl space-y-2 text-center">
-          <div className="text-[11px] text-gray-500 font-medium">Testing out the dashboard?</div>
-          <button
-            type="button"
-            onClick={fillDemoCredentials}
-            className="w-full py-2 bg-white border border-[#E5E0D8] hover:border-[#1C382D] text-[#1C382D] rounded-xl text-xs font-bold transition-all flex items-center justify-center space-x-1.5 shadow-2xs"
-          >
-            <Sparkles size={14} className="text-[#C58359]" />
-            <span>Fill Demo Admin Credentials</span>
-          </button>
-        </div> */}
 
         {/* Security Footer Notice */}
         <div className="pt-2 border-t border-[#E5E0D8] flex items-center justify-center space-x-2 text-[11px] text-gray-400 font-light">
