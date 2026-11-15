@@ -4,8 +4,9 @@ export interface Category {
     _id: string;
     name: string;
     slug: string;
-    description?: string;
-    imageUrl?: string;
+    productCount: number;
+    status: 'Active' | 'Inactive';
+
 }
 
 export interface CategoryResponse {
