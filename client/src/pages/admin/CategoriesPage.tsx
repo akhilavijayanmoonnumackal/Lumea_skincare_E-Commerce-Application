@@ -111,7 +111,7 @@ export default function AdminCategoriesPage() {
         const newCat = response.data.data || response.data;
         setCategories([newCat, ...categories]);
       } else if (editingId) {
-        const response = await axiosClient.put(`/categories/${editingId}`, payload);
+        const response = await axiosClient.patch(`/categories/${editingId}`, payload);
         const updatedCat = response.data.data || response.data;
         setCategories(categories.map(c => c._id === editingId ? updatedCat : c));
       }
