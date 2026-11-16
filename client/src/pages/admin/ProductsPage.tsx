@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Search, Plus, Filter, Edit3, Trash2, Eye, Star, AlertTriangle, X, Loader2, Image as ImageIcon } from 'lucide-react';
+import { Search, Plus, Filter, Edit3, Trash2, Eye, Star, AlertTriangle, X, Loader2, Image as ImageIcon, ChevronLeft, ChevronRight } from 'lucide-react';
 import axiosClient from '../../api/axiosClient';
 import { getCategories, type Category } from '../../api/categoryApi';
 
@@ -41,6 +41,9 @@ export default function AdminProductsPage() {
   const [isViewModalOpen, setIsViewModalOpen] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
 
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 5;
+
   const [formData, setFormData] = useState({
     name: '',
     slug: '',
@@ -71,8 +74,11 @@ export default function AdminProductsPage() {
           }
           if (catRes.success && Array.isArray(catRes.data)) {
             setCategories(catRes.data);
-            if (catRes.data.length > 0 && !formData.category) {
-              setFormData(prev => ({ ...prev, category: catRes.data[0]._id }));
+            if (catRes.data.length > 0) {
+              setFormData(prev => ({
+                ...prev,
+                category: prev.category || catRes.data[0]._id
+              }));
             }
           }
         }
@@ -94,7 +100,7 @@ export default function AdminProductsPage() {
   // Open Add Modal
   const handleOpenAdd = () => {
     setModalMode('add');
-    setFormData({ 
+    setFormData({
       name: '',
       slug: '',
       description: '',
@@ -137,6 +143,7 @@ export default function AdminProductsPage() {
     setIsDeleteModalOpen(true);
   };
 
+  // Open View Modal
   const handleOpenViewModal = (product: Product) => {
     setSelectedProduct(product);
     setIsViewModalOpen(true);
@@ -147,6 +154,9 @@ export default function AdminProductsPage() {
     if (!productToDelete) return;
     try {
       await axiosClient.delete(`/products/${productToDelete._id}`);
+      if (paginatedProducts.length === 1 && currentPage > 1) {
+        setCurrentPage(currentPage - 1);
+      }
       setProducts(products.filter(p => p._id !== productToDelete._id));
       setIsDeleteModalOpen(false);
       setProductToDelete(null);
@@ -156,6 +166,7 @@ export default function AdminProductsPage() {
     }
   };
 
+  // Quick Toggle Featured Status
   const handleToggleFeatured = async (product: Product) => {
     try {
       const updatedStatus = !product.isFeatured;
@@ -201,7 +212,7 @@ export default function AdminProductsPage() {
         if (selectedFile) {
           const data = new FormData();
           data.append('name', formData.name);
-          data.append('slug', formData.slug || formData.name.toLowerCase().replace(/\s+/g, '-'));
+          data.append('slug', generatedSlug);
           data.append('description', formData.description);
           data.append('category', formData.category);
           data.append('price', formData.price);
@@ -215,7 +226,7 @@ export default function AdminProductsPage() {
         } else {
           const payload = {
             name: formData.name,
-            slug: formData.slug || formData.name.toLowerCase().replace(/\s+/g, '-'),
+            slug: generatedSlug,
             description: formData.description,
             category: formData.category,
             price: Number(formData.price),
@@ -267,12 +278,15 @@ export default function AdminProductsPage() {
 
     const matchesCategory = selectedCategory === 'All' || categoryName === selectedCategory;
 
-    const matchesSearch = product.name.toLowerCase().includes(searchQuery.toLowerCase()) || 
+    const matchesSearch = product.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
                           (product.slug && product.slug.toLowerCase().includes(searchQuery.toLowerCase())) ||
                           categoryName.toLowerCase().includes(searchQuery.toLowerCase());
     return matchesCategory && matchesSearch;
   });
-  
+
+  const totalPages = Math.ceil(filteredProducts.length / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const paginatedProducts = filteredProducts.slice(startIndex, startIndex + itemsPerPage);
 
   return (
     <div className="space-y-6">
@@ -281,7 +295,7 @@ export default function AdminProductsPage() {
           <h2 className="font-serif text-2xl text-[#1C382D]">Product Inventory Control</h2>
           <p className="text-xs text-gray-500 font-light">Manage catalog items, pricing, inventory counts, and skin care formulations.</p>
         </div>
-        <button 
+        <button
           onClick={handleOpenAdd}
           className="bg-[#1C382D] hover:bg-[#152a22] text-white px-4 py-2.5 rounded-full text-xs font-bold uppercase tracking-wider flex items-center space-x-2 transition-colors shadow-sm self-start sm:self-auto cursor-pointer"
         >
@@ -293,16 +307,22 @@ export default function AdminProductsPage() {
       {/* Filter Tabs & Search Bar */}
       <div className="bg-white p-4 rounded-3xl border border-[#E5E0D8] shadow-sm flex flex-col md:flex-row items-stretch md:items-center justify-between gap-4">
         <div className="flex items-center space-x-1 overflow-x-auto pb-2 md:pb-0">
-            <button
-              onClick={() => setSelectedCategory('All')}
-              className={`px-4 py-2 rounded-xl text-xs font-bold transition-colors whitespace-nowrap cursor-pointer ${selectedCategory === 'All' ? 'bg-[#1C382D] text-white shadow-2xs' : 'text-gray-600 hover:bg-gray-100'}`}
-            >
-              All
-            </button>
-            {categories.map((cat) => (
+          <button
+            onClick={() => {
+              setSelectedCategory('All');
+              setCurrentPage(1);
+            }}
+            className={`px-4 py-2 rounded-xl text-xs font-bold transition-colors whitespace-nowrap cursor-pointer ${selectedCategory === 'All' ? 'bg-[#1C382D] text-white shadow-2xs' : 'text-gray-600 hover:bg-gray-100'}`}
+          >
+            All
+          </button>
+          {categories.map((cat) => (
             <button
               key={cat._id}
-              onClick={() => setSelectedCategory(cat.name)}
+              onClick={() => {
+                setSelectedCategory(cat.name);
+                setCurrentPage(1);
+              }}
               className={`px-4 py-2 rounded-xl text-xs font-bold transition-colors whitespace-nowrap cursor-pointer ${selectedCategory === cat.name ? 'bg-[#1C382D] text-white shadow-2xs' : 'text-gray-600 hover:bg-gray-100'}`}
             >
               {cat.name}
@@ -316,7 +336,10 @@ export default function AdminProductsPage() {
             <input
               type="text"
               value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
+              onChange={(e) => {
+                setSearchQuery(e.target.value);
+                setCurrentPage(1);
+              }}
               placeholder="Search products or slug..."
               className="w-full bg-[#F7F5F0] border border-[#E5E0D8] rounded-full pl-10 pr-4 py-2 text-xs text-[#1C382D] focus:outline-none focus:border-[#1C382D]"
             />
@@ -346,13 +369,13 @@ export default function AdminProductsPage() {
             <tbody className="divide-y divide-[#E5E0D8] text-xs">
               {isLoading ? (
                 <tr>
-                  <td colSpan={7} className="py-12 text-center text-gray-400">
+                  <td colSpan={8} className="py-12 text-center text-gray-400">
                     <Loader2 className="w-6 h-6 animate-spin mx-auto mb-2 text-[#1C382D]" />
                     Loading products...
                   </td>
                 </tr>
-              ) : filteredProducts.length > 0 ? (
-                filteredProducts.map((product) => (
+              ) : paginatedProducts.length > 0 ? (
+                paginatedProducts.map((product) => (
                   <tr key={product._id} className="hover:bg-[#FAFAFA] transition-colors">
                     <td className="py-4 px-6">
                       <div className="flex items-center space-x-3">
@@ -369,8 +392,8 @@ export default function AdminProductsPage() {
                     <td className="py-4 px-6 text-gray-400 font-mono text-[11px]">{product.slug || '-'}</td>
                     <td className="py-4 px-6 text-gray-600 font-medium">
                       {typeof product.category === 'object' && product.category !== null
-                      ? product.category.name
-                      : product.category}
+                        ? product.category.name
+                        : product.category}
                     </td>
                     <td className="py-4 px-6 font-bold text-[#1C382D]">₹{product.price.toLocaleString('en-IN')}</td>
                     <td className="py-4 px-6">{getStockBadge(product.stockCount)}</td>
@@ -397,22 +420,23 @@ export default function AdminProductsPage() {
                     </td>
                     <td className="py-4 px-6 text-right">
                       <div className="flex items-center justify-end space-x-2">
-                        <button 
+                        <button
                           onClick={() => handleOpenViewModal(product)}
-                          title="View Details" 
-                          className="w-8 h-8 rounded-full border border-[#E5E0D8] bg-white flex items-center justify-center text-gray-600 hover:bg-[#1C382D] hover:text-white hover:border-[#1C382D] transition-all cursor-pointer">
+                          title="View Details"
+                          className="w-8 h-8 rounded-full border border-[#E5E0D8] bg-white flex items-center justify-center text-gray-600 hover:bg-[#1C382D] hover:text-white hover:border-[#1C382D] transition-all cursor-pointer"
+                        >
                           <Eye size={14} />
                         </button>
-                        <button 
+                        <button
                           onClick={() => handleOpenEdit(product)}
-                          title="Edit Product" 
+                          title="Edit Product"
                           className="w-8 h-8 rounded-full border border-[#E5E0D8] bg-white flex items-center justify-center text-gray-600 hover:bg-gray-100 transition-colors cursor-pointer"
                         >
                           <Edit3 size={14} />
                         </button>
-                        <button 
+                        <button
                           onClick={() => handleOpenDeleteModal(product)}
-                          title="Delete" 
+                          title="Delete"
                           className="w-8 h-8 rounded-full border border-rose-100 bg-white flex items-center justify-center text-rose-600 hover:bg-rose-50 transition-colors cursor-pointer"
                         >
                           <Trash2 size={14} />
@@ -423,7 +447,7 @@ export default function AdminProductsPage() {
                 ))
               ) : (
                 <tr>
-                  <td colSpan={7} className="py-12 text-center text-gray-400 font-light">
+                  <td colSpan={8} className="py-12 text-center text-gray-400 font-light">
                     {error || 'No products found matching your search.'}
                   </td>
                 </tr>
@@ -432,21 +456,70 @@ export default function AdminProductsPage() {
           </table>
         </div>
 
-        {/* Table Footer */}
-        <div className="p-4 bg-[#F7F5F0] border-t border-[#E5E0D8] flex items-center justify-between text-xs text-gray-500 font-light">
-          <span>Showing <strong className="text-[#1C382D] font-bold">{filteredProducts.length}</strong> of <strong className="text-[#1C382D] font-bold">{products.length}</strong> catalog items</span>
+        {/* Table Footer with Pagination */}
+        <div className="p-4 bg-[#F7F5F0] border-t border-[#E5E0D8] flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-gray-500 font-light">
+          <span>
+            Showing{' '}
+            <strong className="text-[#1C382D] font-bold">
+              {filteredProducts.length === 0 ? 0 : startIndex + 1}
+            </strong>
+            –
+            <strong className="text-[#1C382D] font-bold">
+              {Math.min(startIndex + itemsPerPage, filteredProducts.length)}
+            </strong>{' '}
+            of <strong className="text-[#1C382D] font-bold">{filteredProducts.length}</strong> catalog items
+          </span>
+
+          {totalPages > 1 && (
+            <div className="flex items-center space-x-1.5">
+              <button
+                type="button"
+                onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
+                disabled={currentPage === 1}
+                className="w-8 h-8 rounded-full border border-[#E5E0D8] bg-white flex items-center justify-center text-[#1C382D] hover:bg-gray-100 disabled:opacity-40 disabled:cursor-not-allowed transition-colors cursor-pointer"
+                title="Previous Page"
+              >
+                <ChevronLeft size={14} />
+              </button>
+
+              {Array.from({ length: totalPages }, (_, index) => index + 1).map((page) => (
+                <button
+                  key={page}
+                  type="button"
+                  onClick={() => setCurrentPage(page)}
+                  className={`w-8 h-8 rounded-full text-xs font-bold transition-colors cursor-pointer ${
+                    currentPage === page
+                      ? 'bg-[#1C382D] text-white shadow-2xs'
+                      : 'bg-white border border-[#E5E0D8] text-gray-600 hover:bg-gray-100'
+                  }`}
+                >
+                  {page}
+                </button>
+              ))}
+
+              <button
+                type="button"
+                onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
+                disabled={currentPage === totalPages}
+                className="w-8 h-8 rounded-full border border-[#E5E0D8] bg-white flex items-center justify-center text-[#1C382D] hover:bg-gray-100 disabled:opacity-40 disabled:cursor-not-allowed transition-colors cursor-pointer"
+                title="Next Page"
+              >
+                <ChevronRight size={14} />
+              </button>
+            </div>
+          )}
         </div>
       </div>
 
       {/* Add / Edit Product Modal */}
       {isModalOpen && (
         <div className="fixed inset-0 bg-black/40 backdrop-blur-xs flex items-center justify-center p-4 z-50">
-          <div className="bg-white rounded-3xl border border-[#E5E0D8] shadow-xl max-w-lg w-full p-6 space-y-6 animate-in fade-in zoom-in duration-200">
+          <div className="bg-white rounded-3xl border border-[#E5E0D8] shadow-xl max-w-lg w-full p-6 space-y-6 animate-in fade-in zoom-in duration-200 max-h-[90vh] overflow-y-auto">
             <div className="flex items-center justify-between border-b border-[#E5E0D8] pb-4">
               <h3 className="font-serif text-xl text-[#1C382D]">
                 {modalMode === 'add' ? 'Add New Formulation' : 'Edit Product Details'}
               </h3>
-              <button 
+              <button
                 onClick={() => setIsModalOpen(false)}
                 className="w-8 h-8 rounded-full bg-[#F7F5F0] flex items-center justify-center text-gray-500 hover:bg-gray-200 cursor-pointer"
               >
@@ -471,6 +544,7 @@ export default function AdminProductsPage() {
                 <label className="text-xs font-bold text-[#1C382D]">Description</label>
                 <textarea
                   rows={2}
+                  required
                   value={formData.description}
                   onChange={(e) => setFormData({ ...formData, description: e.target.value })}
                   placeholder="Enter formulation details..."
@@ -521,12 +595,12 @@ export default function AdminProductsPage() {
                 </div>
 
                 <div className="space-y-1.5">
-                  <label className="text-xs font-bold text-[#1C382D]">SKU (optional)</label>
+                  <label className="text-xs font-bold text-[#1C382D]">Slug (optional)</label>
                   <input
                     type="text"
                     value={formData.slug}
                     onChange={(e) => setFormData({ ...formData, slug: e.target.value })}
-                    placeholder="SKU-2001"
+                    placeholder="hyaluronic-hydration-complex"
                     className="w-full bg-[#F7F5F0] border border-[#E5E0D8] rounded-2xl px-4 py-2.5 text-xs text-[#1C382D] focus:outline-none focus:border-[#1C382D]"
                   />
                 </div>
@@ -547,9 +621,9 @@ export default function AdminProductsPage() {
 
               <div className="space-y-1.5">
                 <label className="text-xs font-bold text-[#1C382D]">Product Image</label>
-                <div className='flex items-center space-x-4'>
+                <div className="flex items-center space-x-4">
                   {imagePreview && (
-                    <img src={imagePreview} alt='Preview' className='w-12 h-12 rounded-xl object-cover border border-[#E5E0D8]' />
+                    <img src={imagePreview} alt="Preview" className="w-12 h-12 rounded-xl object-cover border border-[#E5E0D8]" />
                   )}
                   <input
                     type="file"
