@@ -11,15 +11,15 @@ interface CategoryRef {
 
 interface Product {
   _id: string;
-  sku: string;
   slug: string;
   description: string;
   name: string;
   category: string | CategoryRef;
   price: number;
   stockCount: number;
-  status: 'Active' | 'Low Stock' | 'Out of Stock';
+  isFeatured?: boolean;
   rating?: number;
+  status: 'Active' | 'Low Stock' | 'Out of Stock';
   imageUrl?: string;
 }
 
@@ -42,12 +42,12 @@ export default function AdminProductsPage() {
 
   const [formData, setFormData] = useState({
     name: '',
-    sku: '',
     slug: '',
     description: '',
     category: '',
     price: '',
-    stockCount: 10
+    stockCount: 10,
+    isFeatured: false
   });
 
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
@@ -71,7 +71,6 @@ export default function AdminProductsPage() {
           }
           if (catRes.success && Array.isArray(catRes.data)) {
             setCategories(catRes.data);
-            // Default first form category ID if available
             if (catRes.data.length > 0 && !formData.category) {
               setFormData(prev => ({ ...prev, category: catRes.data[0]._id }));
             }
@@ -96,13 +95,13 @@ export default function AdminProductsPage() {
   const handleOpenAdd = () => {
     setModalMode('add');
     setFormData({ 
-      name: '', 
-      sku: '', 
+      name: '',
       slug: '',
       description: '',
       category: categories.length > 0 ? categories[0]._id : '',
       price: '',
-      stockCount: 10
+      stockCount: 10,
+      isFeatured: false
     });
     setSelectedFile(null);
     setImagePreview('');
@@ -120,12 +119,12 @@ export default function AdminProductsPage() {
 
     setFormData({
       name: product.name,
-      sku: product.sku || '',
       slug: product.slug || '',
       description: product.description || '',
       category: categoryId || (categories.length > 0 ? categories[0]._id : ''),
       price: product.price.toString(),
       stockCount: product.stockCount ?? 10,
+      isFeatured: Boolean(product.isFeatured)
     });
     setSelectedFile(null);
     setImagePreview(product.imageUrl || '');
@@ -152,36 +151,76 @@ export default function AdminProductsPage() {
     }
   };
 
+  const handleToggleFeatured = async (product: Product) => {
+    try {
+      const updatedStatus = !product.isFeatured;
+      const response = await axiosClient.patch(`/products/${product._id}`, {
+        isFeatured: updatedStatus,
+      });
+      const updatedProduct = response.data.data || response.data;
+      setProducts(products.map(p => (p._id === product._id ? updatedProduct : p)));
+    } catch (err) {
+      console.error('Error updating featured status:', err);
+      alert('Failed to update featured status.');
+    }
+  };
+  
   // Submit Add/Edit Form
   const handleSubmitForm = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      const data = new FormData();
-      data.append('name', formData.name);
-      data.append('sku', formData.sku || `SKU-${Math.floor(2000 + Math.random() * 8000)}`);
-      data.append('slug', formData.slug || formData.name.toLowerCase().replace(/\s+/g, '-'));
-      data.append('description', formData.description || 'High-performance skincare formulation.');
-      data.append('category', formData.category);
-      data.append('price', formData.price);
-      data.append('stockCount', formData.stockCount.toString());
-      data.append('isFeatured', 'false');
-
-      if (selectedFile) {
-        data.append('imageUrl', selectedFile);
-      }
-
-      const config = {
-        headers: {
-          'Content-Type': 'multipart/form-data',
-        },
-      };
+      const generatedSlug = formData.slug.trim() || formData.name.toLowerCase().trim().replace(/\s+/g, '-');
 
       if (modalMode === 'add') {
-        const response = await axiosClient.post('/products', data, config);
+        const data = new FormData();
+        data.append('name', formData.name);
+        data.append('slug', generatedSlug);
+        data.append('description', formData.description || 'High-performance skincare formulation.');
+        data.append('category', formData.category);
+        data.append('price', formData.price);
+        data.append('stockCount', formData.stockCount.toString());
+        data.append('isFeatured', String(formData.isFeatured));
+
+        if (selectedFile) {
+          data.append('imageUrl', selectedFile);
+        }
+
+        const response = await axiosClient.post('/products', data, {
+          headers: { 'Content-Type': 'multipart/form-data' },
+        });
+
         const newProduct = response.data.data || response.data;
         setProducts([newProduct, ...products]);
       } else if (editingId) {
-        const response = await axiosClient.patch(`/products/${editingId}`, data, config);
+        let response;
+        if (selectedFile) {
+          const data = new FormData();
+          data.append('name', formData.name);
+          data.append('slug', formData.slug || formData.name.toLowerCase().replace(/\s+/g, '-'));
+          data.append('description', formData.description);
+          data.append('category', formData.category);
+          data.append('price', formData.price);
+          data.append('stockCount', formData.stockCount.toString());
+          data.append('isFeatured', String(formData.isFeatured));
+          data.append('imageUrl', selectedFile);
+
+          response = await axiosClient.patch(`/products/${editingId}`, data, {
+            headers: { 'Content-Type': 'multipart/form-data' },
+          });
+        } else {
+          const payload = {
+            name: formData.name,
+            slug: formData.slug || formData.name.toLowerCase().replace(/\s+/g, '-'),
+            description: formData.description,
+            category: formData.category,
+            price: Number(formData.price),
+            stockCount: Number(formData.stockCount),
+            isFeatured: formData.isFeatured,
+          };
+
+          response = await axiosClient.patch(`/products/${editingId}`, payload);
+        }
+
         const updatedProduct = response.data.data || response.data;
         setProducts(products.map(p => p._id === editingId ? updatedProduct : p));
       }
@@ -224,10 +263,11 @@ export default function AdminProductsPage() {
     const matchesCategory = selectedCategory === 'All' || categoryName === selectedCategory;
 
     const matchesSearch = product.name.toLowerCase().includes(searchQuery.toLowerCase()) || 
-                          (product.sku && product.sku.toLowerCase().includes(searchQuery.toLowerCase())) ||
+                          (product.slug && product.slug.toLowerCase().includes(searchQuery.toLowerCase())) ||
                           categoryName.toLowerCase().includes(searchQuery.toLowerCase());
     return matchesCategory && matchesSearch;
   });
+  
 
   return (
     <div className="space-y-6">
@@ -273,7 +313,7 @@ export default function AdminProductsPage() {
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Search products or SKU..."
+              placeholder="Search products or slug..."
               className="w-full bg-[#F7F5F0] border border-[#E5E0D8] rounded-full pl-10 pr-4 py-2 text-xs text-[#1C382D] focus:outline-none focus:border-[#1C382D]"
             />
           </div>
@@ -290,11 +330,12 @@ export default function AdminProductsPage() {
             <thead>
               <tr className="bg-[#F7F5F0] border-b border-[#E5E0D8] text-[11px] font-bold text-gray-500 uppercase tracking-wider">
                 <th className="py-4 px-6">Product Item</th>
-                <th className="py-4 px-6">SKU ID</th>
+                <th className="py-4 px-6">Slug</th>
                 <th className="py-4 px-6">Category</th>
                 <th className="py-4 px-6">Price</th>
                 <th className="py-4 px-6">Stock Status</th>
                 <th className="py-4 px-6">Rating</th>
+                <th className="py-4 px-6">Featured</th>
                 <th className="py-4 px-6 text-right">Actions</th>
               </tr>
             </thead>
@@ -321,7 +362,7 @@ export default function AdminProductsPage() {
                         <span className="font-bold text-[#1C382D]">{product.name}</span>
                       </div>
                     </td>
-                    <td className="py-4 px-6 text-gray-400 font-mono text-[11px]">{product.sku || '—'}</td>
+                    <td className="py-4 px-6 text-gray-400 font-mono text-[11px]">{product.slug || '-'}</td>
                     <td className="py-4 px-6 text-gray-600 font-medium">
                       {typeof product.category === 'object' && product.category !== null
                       ? product.category.name
@@ -335,6 +376,21 @@ export default function AdminProductsPage() {
                         <span>{product.rating || '5.0'}</span>
                       </div>
                     </td>
+                    <td className="py-4 px-6">
+  <button
+    type="button"
+    onClick={() => handleToggleFeatured(product)}
+    title={product.isFeatured ? 'Remove from Featured' : 'Mark as Featured'}
+    className={`inline-flex items-center space-x-1.5 px-3 py-1 rounded-full text-[11px] font-bold transition-colors cursor-pointer ${
+      product.isFeatured
+        ? 'bg-[#1C382D] text-white'
+        : 'bg-[#F7F5F0] text-gray-500 border border-[#E5E0D8] hover:bg-gray-200'
+    }`}
+  >
+    <Star size={11} className={product.isFeatured ? 'fill-amber-400 text-amber-400' : 'text-gray-400'} />
+    <span>{product.isFeatured ? 'Featured' : 'Standard'}</span>
+  </button>
+</td>
                     <td className="py-4 px-6 text-right">
                       <div className="flex items-center justify-end space-x-2">
                         <button title="View Details" className="w-8 h-8 rounded-full border border-[#E5E0D8] bg-white flex items-center justify-center text-gray-600 hover:bg-[#1C382D] hover:text-white hover:border-[#1C382D] transition-all cursor-pointer">
@@ -404,6 +460,17 @@ export default function AdminProductsPage() {
                 />
               </div>
 
+              <div className="space-y-1.5">
+                <label className="text-xs font-bold text-[#1C382D]">Description</label>
+                <textarea
+                  rows={2}
+                  value={formData.description}
+                  onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                  placeholder="Enter formulation details..."
+                  className="w-full bg-[#F7F5F0] border border-[#E5E0D8] rounded-2xl px-4 py-2.5 text-xs text-[#1C382D] focus:outline-none focus:border-[#1C382D] resize-none"
+                />
+              </div>
+
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-1.5">
                   <label className="text-xs font-bold text-[#1C382D]">Category</label>
@@ -450,12 +517,25 @@ export default function AdminProductsPage() {
                   <label className="text-xs font-bold text-[#1C382D]">SKU (optional)</label>
                   <input
                     type="text"
-                    value={formData.sku}
-                    onChange={(e) => setFormData({ ...formData, sku: e.target.value })}
+                    value={formData.slug}
+                    onChange={(e) => setFormData({ ...formData, slug: e.target.value })}
                     placeholder="SKU-2001"
                     className="w-full bg-[#F7F5F0] border border-[#E5E0D8] rounded-2xl px-4 py-2.5 text-xs text-[#1C382D] focus:outline-none focus:border-[#1C382D]"
                   />
                 </div>
+              </div>
+
+              <div className="flex items-center space-x-2 pt-1">
+                <input
+                  id="isFeatured"
+                  type="checkbox"
+                  checked={formData.isFeatured}
+                  onChange={(e) => setFormData({ ...formData, isFeatured: e.target.checked })}
+                  className="w-4 h-4 accent-[#1C382D] rounded cursor-pointer"
+                />
+                <label htmlFor="isFeatured" className="text-xs font-bold text-[#1C382D] cursor-pointer">
+                  Feature this product on storefront
+                </label>
               </div>
 
               <div className="space-y-1.5">
