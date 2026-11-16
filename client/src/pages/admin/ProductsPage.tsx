@@ -31,14 +31,15 @@ export default function AdminProductsPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState('');
 
-  // Modal & Form State
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [modalMode, setModalMode] = useState<'add' | 'edit'>('add');
   const [editingId, setEditingId] = useState<string | null>(null);
 
-  // Delete Modal State
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [productToDelete, setProductToDelete] = useState<Product | null>(null);
+
+  const [isViewModalOpen, setIsViewModalOpen] = useState(false);
+  const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
 
   const [formData, setFormData] = useState({
     name: '',
@@ -53,7 +54,6 @@ export default function AdminProductsPage() {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string>('');
 
-  // Fetch Products and Categories on mount
   useEffect(() => {
     let isMounted = true;
 
@@ -137,6 +137,11 @@ export default function AdminProductsPage() {
     setIsDeleteModalOpen(true);
   };
 
+  const handleOpenViewModal = (product: Product) => {
+    setSelectedProduct(product);
+    setIsViewModalOpen(true);
+  };
+
   // Confirm Delete
   const handleConfirmDelete = async () => {
     if (!productToDelete) return;
@@ -164,7 +169,7 @@ export default function AdminProductsPage() {
       alert('Failed to update featured status.');
     }
   };
-  
+
   // Submit Add/Edit Form
   const handleSubmitForm = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -271,7 +276,6 @@ export default function AdminProductsPage() {
 
   return (
     <div className="space-y-6">
-      {/* Page Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
           <h2 className="font-serif text-2xl text-[#1C382D]">Product Inventory Control</h2>
@@ -377,23 +381,26 @@ export default function AdminProductsPage() {
                       </div>
                     </td>
                     <td className="py-4 px-6">
-  <button
-    type="button"
-    onClick={() => handleToggleFeatured(product)}
-    title={product.isFeatured ? 'Remove from Featured' : 'Mark as Featured'}
-    className={`inline-flex items-center space-x-1.5 px-3 py-1 rounded-full text-[11px] font-bold transition-colors cursor-pointer ${
-      product.isFeatured
-        ? 'bg-[#1C382D] text-white'
-        : 'bg-[#F7F5F0] text-gray-500 border border-[#E5E0D8] hover:bg-gray-200'
-    }`}
-  >
-    <Star size={11} className={product.isFeatured ? 'fill-amber-400 text-amber-400' : 'text-gray-400'} />
-    <span>{product.isFeatured ? 'Featured' : 'Standard'}</span>
-  </button>
-</td>
+                      <button
+                        type="button"
+                        onClick={() => handleToggleFeatured(product)}
+                        title={product.isFeatured ? 'Remove from Featured' : 'Mark as Featured'}
+                        className={`inline-flex items-center space-x-1.5 px-3 py-1 rounded-full text-[11px] font-bold transition-colors cursor-pointer ${
+                          product.isFeatured
+                            ? 'bg-[#1C382D] text-white'
+                            : 'bg-[#F7F5F0] text-gray-500 border border-[#E5E0D8] hover:bg-gray-200'
+                        }`}
+                      >
+                        <Star size={11} className={product.isFeatured ? 'fill-amber-400 text-amber-400' : 'text-gray-400'} />
+                        <span>{product.isFeatured ? 'Featured' : 'Standard'}</span>
+                      </button>
+                    </td>
                     <td className="py-4 px-6 text-right">
                       <div className="flex items-center justify-end space-x-2">
-                        <button title="View Details" className="w-8 h-8 rounded-full border border-[#E5E0D8] bg-white flex items-center justify-center text-gray-600 hover:bg-[#1C382D] hover:text-white hover:border-[#1C382D] transition-all cursor-pointer">
+                        <button 
+                          onClick={() => handleOpenViewModal(product)}
+                          title="View Details" 
+                          className="w-8 h-8 rounded-full border border-[#E5E0D8] bg-white flex items-center justify-center text-gray-600 hover:bg-[#1C382D] hover:text-white hover:border-[#1C382D] transition-all cursor-pointer">
                           <Eye size={14} />
                         </button>
                         <button 
@@ -611,6 +618,104 @@ export default function AdminProductsPage() {
                 className="px-6 py-2.5 rounded-full bg-rose-600 hover:bg-rose-700 text-xs font-bold text-white shadow-sm transition-colors cursor-pointer"
               >
                 Delete
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* View Product Details Modal */}
+      {isViewModalOpen && selectedProduct && (
+        <div className="fixed inset-0 bg-black/40 backdrop-blur-xs flex items-center justify-center p-4 z-50">
+          <div className="bg-white rounded-3xl border border-[#E5E0D8] shadow-xl max-w-lg w-full p-6 space-y-5 animate-in fade-in zoom-in duration-200">
+            <div className="flex items-center justify-between border-b border-[#E5E0D8] pb-4">
+              <div>
+                <h3 className="font-serif text-xl text-[#1C382D]">{selectedProduct.name}</h3>
+                <p className="text-[11px] font-mono text-gray-400 mt-0.5">/{selectedProduct.slug}</p>
+              </div>
+              <button
+                onClick={() => {
+                  setIsViewModalOpen(false);
+                  setSelectedProduct(null);
+                }}
+                className="w-8 h-8 rounded-full bg-[#F7F5F0] flex items-center justify-center text-gray-500 hover:bg-gray-200 cursor-pointer"
+              >
+                <X size={16} />
+              </button>
+            </div>
+
+            <div className="flex items-start space-x-4">
+              {selectedProduct.imageUrl ? (
+                <img
+                  src={selectedProduct.imageUrl}
+                  alt={selectedProduct.name}
+                  className="w-24 h-24 rounded-2xl object-cover border border-[#E5E0D8] shrink-0"
+                />
+              ) : (
+                <div className="w-24 h-24 rounded-2xl bg-[#F7F5F0] border border-[#E5E0D8] flex items-center justify-center text-gray-400 shrink-0">
+                  <ImageIcon size={24} />
+                </div>
+              )}
+
+              <div className="space-y-2 text-xs flex-1">
+                <div className="flex flex-wrap items-center gap-2">
+                  <span className="px-3 py-1 rounded-full bg-[#F7F5F0] border border-[#E5E0D8] font-bold text-[#1C382D]">
+                    {typeof selectedProduct.category === 'object' && selectedProduct.category !== null
+                      ? selectedProduct.category.name
+                      : selectedProduct.category}
+                  </span>
+                  {selectedProduct.isFeatured && (
+                    <span className="inline-flex items-center space-x-1 px-3 py-1 rounded-full bg-[#1C382D] text-white font-bold">
+                      <Star size={11} className="fill-amber-400 text-amber-400" />
+                      <span>Featured</span>
+                    </span>
+                  )}
+                </div>
+
+                <div className="grid grid-cols-2 gap-2 pt-1">
+                  <div className="bg-[#F7F5F0] p-2.5 rounded-2xl border border-[#E5E0D8]">
+                    <span className="text-[10px] uppercase tracking-wider text-gray-400 block">Price</span>
+                    <span className="font-bold text-sm text-[#1C382D]">
+                      ₹{selectedProduct.price.toLocaleString('en-IN')}
+                    </span>
+                  </div>
+                  <div className="bg-[#F7F5F0] p-2.5 rounded-2xl border border-[#E5E0D8]">
+                    <span className="text-[10px] uppercase tracking-wider text-gray-400 block">Stock Count</span>
+                    <span className="font-bold text-sm text-[#1C382D]">{selectedProduct.stockCount} units</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div className="space-y-1.5">
+              <span className="text-[11px] font-bold uppercase tracking-wider text-gray-400">Formulation Description</span>
+              <p className="text-xs text-gray-600 leading-relaxed bg-[#F7F5F0] p-4 rounded-2xl border border-[#E5E0D8]">
+                {selectedProduct.description || 'No description provided.'}
+              </p>
+            </div>
+
+            <div className="pt-2 flex items-center justify-end space-x-3 border-t border-[#E5E0D8]">
+              <button
+                type="button"
+                onClick={() => {
+                  const product = selectedProduct;
+                  setIsViewModalOpen(false);
+                  setSelectedProduct(null);
+                  handleOpenEdit(product);
+                }}
+                className="px-5 py-2.5 rounded-full border border-[#E5E0D8] bg-white text-xs font-bold text-[#1C382D] hover:bg-gray-100 transition-colors cursor-pointer"
+              >
+                Edit Product
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setIsViewModalOpen(false);
+                  setSelectedProduct(null);
+                }}
+                className="px-6 py-2.5 rounded-full bg-[#1C382D] hover:bg-[#152a22] text-xs font-bold text-white shadow-sm transition-colors cursor-pointer"
+              >
+                Close
               </button>
             </div>
           </div>
