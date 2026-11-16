@@ -1,104 +1,231 @@
-import { useState } from 'react';
-import { Search, Plus, Filter, Edit3, Trash2, Eye, Star, AlertTriangle } from 'lucide-react';
+import { useEffect, useState } from 'react';
+import { Search, Plus, Filter, Edit3, Trash2, Eye, Star, AlertTriangle, X, Loader2, Image as ImageIcon } from 'lucide-react';
+import axiosClient from '../../api/axiosClient';
+import { getCategories, type Category } from '../../api/categoryApi';
+
+interface CategoryRef {
+  _id: string;
+  name: string;
+  slug?: string;
+}
+
+interface Product {
+  _id: string;
+  sku: string;
+  slug: string;
+  description: string;
+  name: string;
+  category: string | CategoryRef;
+  price: number;
+  stockCount: number;
+  status: 'Active' | 'Low Stock' | 'Out of Stock';
+  rating?: number;
+  imageUrl?: string;
+}
 
 export default function AdminProductsPage() {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('All');
+  const [products, setProducts] = useState<Product[]>([]);
+  const [categories, setCategories] = useState<Category[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState('');
 
-  const products = [
-    { 
-      id: 'SKU-2001', 
-      name: 'Vitamin C Glow Serum', 
-      category: 'Serums & Oils', 
-      price: '₹1,450', 
-      stock: 42, 
-      status: 'Active', 
-      rating: 4.8, 
-      img: 'https://images.unsplash.com/photo-1620916566398-39f1143ab7be?w=100&auto=format&fit=crop&q=80' 
-    },
-    { 
-      id: 'SKU-2002', 
-      name: 'Barrier Repair Cream', 
-      category: 'Moisturisers', 
-      price: '₹1,850', 
-      stock: 14, 
-      status: 'Active', 
-      rating: 4.9, 
-      img: 'https://images.unsplash.com/photo-1598440947619-2c35fc9aa908?w=100&auto=format&fit=crop&q=80' 
-    },
-    { 
-      id: 'SKU-2003', 
-      name: 'Mineral Daily SPF 50', 
-      category: 'Sun Care', 
-      price: '₹1,200', 
-      stock: 6, 
-      status: 'Low Stock', 
-      rating: 4.7, 
-      img: 'https://images.unsplash.com/photo-1556228720-195a672e8a03?w=100&auto=format&fit=crop&q=80' 
-    },
-    { 
-      id: 'SKU-2004', 
-      name: 'Hydrating Gel Cleanser', 
-      category: 'Cleansers', 
-      price: '₹950', 
-      stock: 58, 
-      status: 'Active', 
-      rating: 4.6, 
-      img: 'https://images.unsplash.com/photo-1556228726-952b655928d3?w=100&auto=format&fit=crop&q=80' 
-    },
-    { 
-      id: 'SKU-2005', 
-      name: 'Rose Exfoliating Polish', 
-      category: 'Exfoliators', 
-      price: '₹1,350', 
-      stock: 9, 
-      status: 'Low Stock', 
-      rating: 4.5, 
-      img: 'https://images.unsplash.com/photo-1608248597359-994b59367e23?w=100&auto=format&fit=crop&q=80' 
-    },
-    { 
-      id: 'SKU-2006', 
-      name: 'Niacinamide Pore Refining Toner', 
-      category: 'Toners', 
-      price: '₹1,100', 
-      stock: 0, 
-      status: 'Out of Stock', 
-      rating: 4.4, 
-      img: 'https://images.unsplash.com/photo-1608248597389-7389a69ef8b2?w=100&auto=format&fit=crop&q=80' 
-    },
-  ];
+  // Modal & Form State
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [modalMode, setModalMode] = useState<'add' | 'edit'>('add');
+  const [editingId, setEditingId] = useState<string | null>(null);
 
-  const getStockBadge = (status: string, stock: number) => {
-    switch (status) {
-      case 'Active':
-        return (
-          <span className="inline-flex items-center space-x-1.5 px-3 py-1 rounded-full text-[11px] font-bold bg-[#EAF3EA] text-[#2D6A4F]">
-            <span>In Stock ({stock})</span>
-          </span>
-        );
-      case 'Low Stock':
-        return (
-          <span className="inline-flex items-center space-x-1.5 px-3 py-1 rounded-full text-[11px] font-bold bg-amber-50 text-amber-700">
-            <AlertTriangle size={12} />
-            <span>Low Stock ({stock})</span>
-          </span>
-        );
-      case 'Out of Stock':
-        return (
-          <span className="inline-flex items-center space-x-1.5 px-3 py-1 rounded-full text-[11px] font-bold bg-rose-50 text-rose-700">
-            <span>Out of Stock</span>
-          </span>
-        );
-      default:
-        return null;
+  // Delete Modal State
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [productToDelete, setProductToDelete] = useState<Product | null>(null);
+
+  const [formData, setFormData] = useState({
+    name: '',
+    sku: '',
+    slug: '',
+    description: '',
+    category: '',
+    price: '',
+    stockCount: 10
+  });
+
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [imagePreview, setImagePreview] = useState<string>('');
+
+  // Fetch Products and Categories on mount
+  useEffect(() => {
+    let isMounted = true;
+
+    const loadData = async () => {
+      try {
+        setIsLoading(true);
+        const [prodRes, catRes] = await Promise.all([
+          axiosClient.get('/products'),
+          getCategories()
+        ]);
+
+        if (isMounted) {
+          if (prodRes.data.success && Array.isArray(prodRes.data.data)) {
+            setProducts(prodRes.data.data);
+          }
+          if (catRes.success && Array.isArray(catRes.data)) {
+            setCategories(catRes.data);
+            // Default first form category ID if available
+            if (catRes.data.length > 0 && !formData.category) {
+              setFormData(prev => ({ ...prev, category: catRes.data[0]._id }));
+            }
+          }
+        }
+      } catch (err) {
+        console.error('Error loading inventory data:', err);
+        if (isMounted) setError('Failed to load product inventory from database.');
+      } finally {
+        if (isMounted) setIsLoading(false);
+      }
+    };
+
+    loadData();
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
+  // Open Add Modal
+  const handleOpenAdd = () => {
+    setModalMode('add');
+    setFormData({ 
+      name: '', 
+      sku: '', 
+      slug: '',
+      description: '',
+      category: categories.length > 0 ? categories[0]._id : '',
+      price: '',
+      stockCount: 10
+    });
+    setSelectedFile(null);
+    setImagePreview('');
+    setIsModalOpen(true);
+  };
+
+  // Open Edit Modal
+  const handleOpenEdit = (product: Product) => {
+    setModalMode('edit');
+    setEditingId(product._id);
+
+    const categoryId = typeof product.category === 'object' && product.category !== null
+      ? product.category._id
+      : product.category;
+
+    setFormData({
+      name: product.name,
+      sku: product.sku || '',
+      slug: product.slug || '',
+      description: product.description || '',
+      category: categoryId || (categories.length > 0 ? categories[0]._id : ''),
+      price: product.price.toString(),
+      stockCount: product.stockCount ?? 10,
+    });
+    setSelectedFile(null);
+    setImagePreview(product.imageUrl || '');
+    setIsModalOpen(true);
+  };
+
+  // Open Delete Modal
+  const handleOpenDeleteModal = (product: Product) => {
+    setProductToDelete(product);
+    setIsDeleteModalOpen(true);
+  };
+
+  // Confirm Delete
+  const handleConfirmDelete = async () => {
+    if (!productToDelete) return;
+    try {
+      await axiosClient.delete(`/products/${productToDelete._id}`);
+      setProducts(products.filter(p => p._id !== productToDelete._id));
+      setIsDeleteModalOpen(false);
+      setProductToDelete(null);
+    } catch (err) {
+      console.error('Error deleting product:', err);
+      alert('Failed to delete product.');
     }
   };
 
+  // Submit Add/Edit Form
+  const handleSubmitForm = async (e: React.FormEvent) => {
+    e.preventDefault();
+    try {
+      const data = new FormData();
+      data.append('name', formData.name);
+      data.append('sku', formData.sku || `SKU-${Math.floor(2000 + Math.random() * 8000)}`);
+      data.append('slug', formData.slug || formData.name.toLowerCase().replace(/\s+/g, '-'));
+      data.append('description', formData.description || 'High-performance skincare formulation.');
+      data.append('category', formData.category);
+      data.append('price', formData.price);
+      data.append('stockCount', formData.stockCount.toString());
+      data.append('isFeatured', 'false');
+
+      if (selectedFile) {
+        data.append('imageUrl', selectedFile);
+      }
+
+      const config = {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      };
+
+      if (modalMode === 'add') {
+        const response = await axiosClient.post('/products', data, config);
+        const newProduct = response.data.data || response.data;
+        setProducts([newProduct, ...products]);
+      } else if (editingId) {
+        const response = await axiosClient.patch(`/products/${editingId}`, data, config);
+        const updatedProduct = response.data.data || response.data;
+        setProducts(products.map(p => p._id === editingId ? updatedProduct : p));
+      }
+
+      setIsModalOpen(false);
+    } catch (err) {
+      console.error('Error saving product:', err);
+      alert('Failed to save product.');
+    }
+  };
+
+  const getStockBadge = (stock: number) => {
+    if (stock === 0) {
+      return (
+        <span className="inline-flex items-center space-x-1.5 px-3 py-1 rounded-full text-[11px] font-bold bg-rose-50 text-rose-700">
+          <span>Out of Stock</span>
+        </span>
+      );
+    }
+    if (stock < 10) {
+      return (
+        <span className="inline-flex items-center space-x-1.5 px-3 py-1 rounded-full text-[11px] font-bold bg-amber-50 text-amber-700">
+          <AlertTriangle size={12} />
+          <span>Low Stock ({stock})</span>
+        </span>
+      );
+    }
+    return (
+      <span className="inline-flex items-center space-x-1.5 px-3 py-1 rounded-full text-[11px] font-bold bg-[#EAF3EA] text-[#2D6A4F]">
+        <span>In Stock ({stock})</span>
+      </span>
+    );
+  };
+
   const filteredProducts = products.filter(product => {
-    const matchesCategory = selectedCategory === 'All' || product.category === selectedCategory;
+    const categoryName = typeof product.category === 'object' && product.category !== null
+      ? product.category.name
+      : product.category;
+
+    const matchesCategory = selectedCategory === 'All' || categoryName === selectedCategory;
+
     const matchesSearch = product.name.toLowerCase().includes(searchQuery.toLowerCase()) || 
-                          product.id.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                          product.category.toLowerCase().includes(searchQuery.toLowerCase());
+                          (product.sku && product.sku.toLowerCase().includes(searchQuery.toLowerCase())) ||
+                          categoryName.toLowerCase().includes(searchQuery.toLowerCase());
     return matchesCategory && matchesSearch;
   });
 
@@ -110,7 +237,10 @@ export default function AdminProductsPage() {
           <h2 className="font-serif text-2xl text-[#1C382D]">Product Inventory Control</h2>
           <p className="text-xs text-gray-500 font-light">Manage catalog items, pricing, inventory counts, and skin care formulations.</p>
         </div>
-        <button className="bg-[#1C382D] hover:bg-[#152a22] text-white px-4 py-2.5 rounded-full text-xs font-bold uppercase tracking-wider flex items-center space-x-2 transition-colors shadow-sm self-start sm:self-auto">
+        <button 
+          onClick={handleOpenAdd}
+          className="bg-[#1C382D] hover:bg-[#152a22] text-white px-4 py-2.5 rounded-full text-xs font-bold uppercase tracking-wider flex items-center space-x-2 transition-colors shadow-sm self-start sm:self-auto cursor-pointer"
+        >
           <Plus size={15} />
           <span>Add New Product</span>
         </button>
@@ -119,13 +249,19 @@ export default function AdminProductsPage() {
       {/* Filter Tabs & Search Bar */}
       <div className="bg-white p-4 rounded-3xl border border-[#E5E0D8] shadow-sm flex flex-col md:flex-row items-stretch md:items-center justify-between gap-4">
         <div className="flex items-center space-x-1 overflow-x-auto pb-2 md:pb-0">
-          {['All', 'Serums & Oils', 'Moisturisers', 'Sun Care', 'Cleansers', 'Exfoliators'].map((cat) => (
             <button
-              key={cat}
-              onClick={() => setSelectedCategory(cat)}
-              className={`px-4 py-2 rounded-xl text-xs font-bold transition-colors whitespace-nowrap ${selectedCategory === cat ? 'bg-[#1C382D] text-white shadow-2xs' : 'text-gray-600 hover:bg-gray-100'}`}
+              onClick={() => setSelectedCategory('All')}
+              className={`px-4 py-2 rounded-xl text-xs font-bold transition-colors whitespace-nowrap cursor-pointer ${selectedCategory === 'All' ? 'bg-[#1C382D] text-white shadow-2xs' : 'text-gray-600 hover:bg-gray-100'}`}
             >
-              {cat}
+              All
+            </button>
+            {categories.map((cat) => (
+            <button
+              key={cat._id}
+              onClick={() => setSelectedCategory(cat.name)}
+              className={`px-4 py-2 rounded-xl text-xs font-bold transition-colors whitespace-nowrap cursor-pointer ${selectedCategory === cat.name ? 'bg-[#1C382D] text-white shadow-2xs' : 'text-gray-600 hover:bg-gray-100'}`}
+            >
+              {cat.name}
             </button>
           ))}
         </div>
@@ -141,7 +277,7 @@ export default function AdminProductsPage() {
               className="w-full bg-[#F7F5F0] border border-[#E5E0D8] rounded-full pl-10 pr-4 py-2 text-xs text-[#1C382D] focus:outline-none focus:border-[#1C382D]"
             />
           </div>
-          <button className="w-9 h-9 rounded-full border border-[#E5E0D8] bg-[#F7F5F0] flex items-center justify-center text-gray-600 hover:bg-gray-200 transition-colors">
+          <button className="w-9 h-9 rounded-full border border-[#E5E0D8] bg-[#F7F5F0] flex items-center justify-center text-gray-600 hover:bg-gray-200 transition-colors cursor-pointer">
             <Filter size={15} />
           </button>
         </div>
@@ -163,34 +299,59 @@ export default function AdminProductsPage() {
               </tr>
             </thead>
             <tbody className="divide-y divide-[#E5E0D8] text-xs">
-              {filteredProducts.length > 0 ? (
-                filteredProducts.map((product, idx) => (
-                  <tr key={idx} className="hover:bg-[#FAFAFA] transition-colors">
+              {isLoading ? (
+                <tr>
+                  <td colSpan={7} className="py-12 text-center text-gray-400">
+                    <Loader2 className="w-6 h-6 animate-spin mx-auto mb-2 text-[#1C382D]" />
+                    Loading products...
+                  </td>
+                </tr>
+              ) : filteredProducts.length > 0 ? (
+                filteredProducts.map((product) => (
+                  <tr key={product._id} className="hover:bg-[#FAFAFA] transition-colors">
                     <td className="py-4 px-6">
                       <div className="flex items-center space-x-3">
-                        <img src={product.img} alt={product.name} className="w-10 h-10 rounded-xl object-cover bg-white p-0.5 border border-[#E5E0D8]" />
+                        {product.imageUrl ? (
+                          <img src={product.imageUrl} alt={product.name} className="w-10 h-10 rounded-xl object-cover bg-white p-0.5 border border-[#E5E0D8]" />
+                        ) : (
+                          <div className="w-10 h-10 rounded-xl bg-[#F7F5F0] border border-[#E5E0D8] flex items-center justify-center text-gray-400">
+                            <ImageIcon size={18} />
+                          </div>
+                        )}
                         <span className="font-bold text-[#1C382D]">{product.name}</span>
                       </div>
                     </td>
-                    <td className="py-4 px-6 text-gray-400 font-mono text-[11px]">{product.id}</td>
-                    <td className="py-4 px-6 text-gray-600 font-medium">{product.category}</td>
-                    <td className="py-4 px-6 font-bold text-[#1C382D]">{product.price}</td>
-                    <td className="py-4 px-6">{getStockBadge(product.status, product.stock)}</td>
+                    <td className="py-4 px-6 text-gray-400 font-mono text-[11px]">{product.sku || '—'}</td>
+                    <td className="py-4 px-6 text-gray-600 font-medium">
+                      {typeof product.category === 'object' && product.category !== null
+                      ? product.category.name
+                      : product.category}
+                    </td>
+                    <td className="py-4 px-6 font-bold text-[#1C382D]">₹{product.price.toLocaleString('en-IN')}</td>
+                    <td className="py-4 px-6">{getStockBadge(product.stockCount)}</td>
                     <td className="py-4 px-6">
                       <div className="flex items-center space-x-1 text-amber-700 font-bold">
                         <Star size={13} className="fill-amber-400 text-amber-400" />
-                        <span>{product.rating}</span>
+                        <span>{product.rating || '5.0'}</span>
                       </div>
                     </td>
                     <td className="py-4 px-6 text-right">
                       <div className="flex items-center justify-end space-x-2">
-                        <button title="View Details" className="w-8 h-8 rounded-full border border-[#E5E0D8] bg-white flex items-center justify-center text-gray-600 hover:bg-[#1C382D] hover:text-white hover:border-[#1C382D] transition-all">
+                        <button title="View Details" className="w-8 h-8 rounded-full border border-[#E5E0D8] bg-white flex items-center justify-center text-gray-600 hover:bg-[#1C382D] hover:text-white hover:border-[#1C382D] transition-all cursor-pointer">
                           <Eye size={14} />
                         </button>
-                        <button title="Edit Product" className="w-8 h-8 rounded-full border border-[#E5E0D8] bg-white flex items-center justify-center text-gray-600 hover:bg-gray-100 transition-colors">
+                        <button 
+                          onClick={() => handleOpenEdit(product)}
+                          title="Edit Product" 
+                          className="w-8 h-8 rounded-full border border-[#E5E0D8] bg-white flex items-center justify-center text-gray-600 hover:bg-gray-100 transition-colors cursor-pointer"
+                        >
                           <Edit3 size={14} />
                         </button>
-                        <button title="Delete" className="w-8 h-8 rounded-full border border-rose-100 bg-white flex items-center justify-center text-rose-600 hover:bg-rose-50 transition-colors">
+                        <button 
+                          onClick={() => handleOpenDeleteModal(product)}
+                          title="Delete" 
+                          className="w-8 h-8 rounded-full border border-rose-100 bg-white flex items-center justify-center text-rose-600 hover:bg-rose-50 transition-colors cursor-pointer"
+                        >
                           <Trash2 size={14} />
                         </button>
                       </div>
@@ -200,7 +361,7 @@ export default function AdminProductsPage() {
               ) : (
                 <tr>
                   <td colSpan={7} className="py-12 text-center text-gray-400 font-light">
-                    No products found matching your search.
+                    {error || 'No products found matching your search.'}
                   </td>
                 </tr>
               )}
@@ -211,12 +372,170 @@ export default function AdminProductsPage() {
         {/* Table Footer */}
         <div className="p-4 bg-[#F7F5F0] border-t border-[#E5E0D8] flex items-center justify-between text-xs text-gray-500 font-light">
           <span>Showing <strong className="text-[#1C382D] font-bold">{filteredProducts.length}</strong> of <strong className="text-[#1C382D] font-bold">{products.length}</strong> catalog items</span>
-          <div className="flex items-center space-x-2">
-            <button className="px-3 py-1.5 rounded-lg border border-[#E5E0D8] bg-white text-gray-600 hover:bg-gray-50 disabled:opacity-50" disabled>Previous</button>
-            <button className="px-3 py-1.5 rounded-lg border border-[#E5E0D8] bg-white text-gray-600 hover:bg-gray-50">Next</button>
-          </div>
         </div>
       </div>
+
+      {/* Add / Edit Product Modal */}
+      {isModalOpen && (
+        <div className="fixed inset-0 bg-black/40 backdrop-blur-xs flex items-center justify-center p-4 z-50">
+          <div className="bg-white rounded-3xl border border-[#E5E0D8] shadow-xl max-w-lg w-full p-6 space-y-6 animate-in fade-in zoom-in duration-200">
+            <div className="flex items-center justify-between border-b border-[#E5E0D8] pb-4">
+              <h3 className="font-serif text-xl text-[#1C382D]">
+                {modalMode === 'add' ? 'Add New Formulation' : 'Edit Product Details'}
+              </h3>
+              <button 
+                onClick={() => setIsModalOpen(false)}
+                className="w-8 h-8 rounded-full bg-[#F7F5F0] flex items-center justify-center text-gray-500 hover:bg-gray-200 cursor-pointer"
+              >
+                <X size={16} />
+              </button>
+            </div>
+
+            <form onSubmit={handleSubmitForm} className="space-y-4">
+              <div className="space-y-1.5">
+                <label className="text-xs font-bold text-[#1C382D]">Product Name</label>
+                <input
+                  type="text"
+                  required
+                  value={formData.name}
+                  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                  placeholder="e.g. Hyaluronic Hydration Complex"
+                  className="w-full bg-[#F7F5F0] border border-[#E5E0D8] rounded-2xl px-4 py-2.5 text-xs text-[#1C382D] focus:outline-none focus:border-[#1C382D]"
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-1.5">
+                  <label className="text-xs font-bold text-[#1C382D]">Category</label>
+                  <select
+                    value={formData.category}
+                    onChange={(e) => setFormData({ ...formData, category: e.target.value })}
+                    className="w-full bg-[#F7F5F0] border border-[#E5E0D8] rounded-2xl px-4 py-2.5 text-xs text-[#1C382D] focus:outline-none focus:border-[#1C382D]"
+                  >
+                    {categories.map((cat) => (
+                      <option key={cat._id} value={cat._id}>
+                        {cat.name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                <div className="space-y-1.5">
+                  <label className="text-xs font-bold text-[#1C382D]">Price (₹)</label>
+                  <input
+                    type="number"
+                    required
+                    value={formData.price}
+                    onChange={(e) => setFormData({ ...formData, price: e.target.value })}
+                    placeholder="1450"
+                    className="w-full bg-[#F7F5F0] border border-[#E5E0D8] rounded-2xl px-4 py-2.5 text-xs text-[#1C382D] focus:outline-none focus:border-[#1C382D]"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-1.5">
+                  <label className="text-xs font-bold text-[#1C382D]">Stock Quantity</label>
+                  <input
+                    type="number"
+                    required
+                    min="0"
+                    value={formData.stockCount}
+                    onChange={(e) => setFormData({ ...formData, stockCount: Number(e.target.value) })}
+                    className="w-full bg-[#F7F5F0] border border-[#E5E0D8] rounded-2xl px-4 py-2.5 text-xs text-[#1C382D] focus:outline-none focus:border-[#1C382D]"
+                  />
+                </div>
+
+                <div className="space-y-1.5">
+                  <label className="text-xs font-bold text-[#1C382D]">SKU (optional)</label>
+                  <input
+                    type="text"
+                    value={formData.sku}
+                    onChange={(e) => setFormData({ ...formData, sku: e.target.value })}
+                    placeholder="SKU-2001"
+                    className="w-full bg-[#F7F5F0] border border-[#E5E0D8] rounded-2xl px-4 py-2.5 text-xs text-[#1C382D] focus:outline-none focus:border-[#1C382D]"
+                  />
+                </div>
+              </div>
+
+              <div className="space-y-1.5">
+                <label className="text-xs font-bold text-[#1C382D]">Product Image</label>
+                <div className='flex items-center space-x-4'>
+                  {imagePreview && (
+                    <img src={imagePreview} alt='Preview' className='w-12 h-12 rounded-xl object-cover border border-[#E5E0D8]' />
+                  )}
+                  <input
+                    type="file"
+                    accept="image/*"
+                    onChange={(e) => {
+                      if (e.target.files && e.target.files[0]) {
+                        const file = e.target.files[0];
+                        setSelectedFile(file);
+                        setImagePreview(URL.createObjectURL(file));
+                      }
+                    }}
+                    className="w-full bg-[#F7F5F0] border border-[#E5E0D8] rounded-2xl px-4 py-2 text-xs text-[#1C382D] file:mr-4 file:py-1 file:px-3 file:rounded-full file:border-0 file:text-xs file:font-bold file:bg-[#1C382D] file:text-white hover:file:bg-[#152a22]"
+                  />
+                </div>
+              </div>
+
+              <div className="pt-4 flex items-center justify-end space-x-3 border-t border-[#E5E0D8]">
+                <button
+                  type="button"
+                  onClick={() => setIsModalOpen(false)}
+                  className="px-5 py-2.5 rounded-full border border-[#E5E0D8] bg-white text-xs font-bold text-gray-600 hover:bg-gray-100 transition-colors cursor-pointer"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="px-6 py-2.5 rounded-full bg-[#1C382D] hover:bg-[#152a22] text-xs font-bold text-white shadow-sm transition-colors cursor-pointer"
+                >
+                  {modalMode === 'add' ? 'Save Product' : 'Update Product'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Delete Confirmation Modal */}
+      {isDeleteModalOpen && productToDelete && (
+        <div className="fixed inset-0 bg-black/40 backdrop-blur-xs flex items-center justify-center p-4 z-50">
+          <div className="bg-white rounded-3xl border border-[#E5E0D8] shadow-xl max-w-md w-full p-6 space-y-5 animate-in fade-in zoom-in duration-200 text-center">
+            <div className="w-12 h-12 rounded-full bg-rose-50 border border-rose-100 flex items-center justify-center mx-auto text-rose-600">
+              <AlertTriangle size={22} />
+            </div>
+
+            <div className="space-y-1.5">
+              <h3 className="font-serif text-xl text-[#1C382D]">Delete Product?</h3>
+              <p className="text-xs text-gray-500 font-light">
+                Are you sure you want to delete <strong className="text-[#1C382D] font-bold">"{productToDelete.name}"</strong>? This action cannot be undone.
+              </p>
+            </div>
+
+            <div className="pt-2 flex items-center justify-center space-x-3">
+              <button
+                type="button"
+                onClick={() => {
+                  setIsDeleteModalOpen(false);
+                  setProductToDelete(null);
+                }}
+                className="px-5 py-2.5 rounded-full border border-[#E5E0D8] bg-white text-xs font-bold text-gray-600 hover:bg-gray-100 transition-colors cursor-pointer"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={handleConfirmDelete}
+                className="px-6 py-2.5 rounded-full bg-rose-600 hover:bg-rose-700 text-xs font-bold text-white shadow-sm transition-colors cursor-pointer"
+              >
+                Delete
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
