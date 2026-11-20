@@ -7,7 +7,7 @@ const addressSchema = new Schema({
     postalCode: { type: String, required: true },
     country: { type: String, required: true },
     phone: { type: String, required: true },
-    isDefualt: { type: Boolean, default: false }
+    isDefault: { type: Boolean, default: false }
 });
 
 const userSchema: Schema = new Schema<IUser>({
